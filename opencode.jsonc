@@ -1,0 +1,13 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  // Bloqueo duro de las skills y el MCP de AWS solo en este proyecto.
+  // Las políticas no se pueden saltar ni con @menciones ni con invocación manual.
+  "policies": [
+    { "action": "skill.use", "resource": "aws-*", "effect": "deny" },
+    { "action": "skill.use", "resource": "amazon-bedrock", "effect": "deny" },
+    { "action": "skill.use", "resource": "launch-with-aws", "effect": "deny" },
+    { "action": "skill.use", "resource": "signing-in-to-aws", "effect": "deny" },
+    { "action": "skill.use", "resource": "ocr-document-processing-skill", "effect": "deny" },
+    { "action": "mcp.use", "resource": "aws-mcp", "effect": "deny" }
+  ]
+}

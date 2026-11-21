@@ -1,0 +1,8 @@
+README.md
+pyproject.toml
+pavimentos/__init__.py
+pavimentos_aashto93.egg-info/PKG-INFO
+pavimentos_aashto93.egg-info/SOURCES.txt
+pavimentos_aashto93.egg-info/dependency_links.txt
+pavimentos_aashto93.egg-info/requires.txt
+pavimentos_aashto93.egg-info/top_level.txt

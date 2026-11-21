@@ -1,0 +1,22 @@
+{
+  "nombre": "Practico 3",
+  "n": 15,
+  "fd": 0.5,
+  "fc": 1.0,
+  "sn": 3,
+  "pt": 2.0,
+  "vehiculos": [
+    {"nombre": "Automóvil", "tpda": 250, "r": 0.03, "pesado": false, "ejes": [["simple", 1], ["simple", 1]]},
+    {"nombre": "Camioneta", "tpda": 65, "r": 0.03, "pesado": false, "ejes": [["simple", 1], ["simple", 2]]},
+    {"nombre": "Minibús", "tpda": 315, "r": 0.03, "pesado": false, "ejes": [["simple", 1], ["simple", 2]]},
+    {"nombre": "Bus 12-21", "tpda": 1, "r": 0.03, "pesado": true, "ejes": [["simple", 1], ["simple", 4]]},
+    {"nombre": "Bus 21-35", "tpda": 25, "r": 0.05, "pesado": true, "ejes": [["simple", 2], ["simple", 11]]},
+    {"nombre": "Bus 35+", "tpda": 35, "r": 0.04, "pesado": true, "ejes": [["simple", 7], ["tandem", 18]]},
+    {"nombre": "Camión mediano", "tpda": 32, "r": 0.02, "pesado": true, "ejes": [["simple", 7], ["simple", 11]]},
+    {"nombre": "Camión grande 2 ejes", "tpda": 16, "r": 0.02, "pesado": true, "ejes": [["simple", 7], ["tridem", 25]]},
+    {"nombre": "Camión grande 3 ejes", "tpda": 8, "r": 0.01, "pesado": true, "ejes": [["simple", 7], ["simple", 7], ["tandem", 18]]},
+    {"nombre": "Semirremolque", "tpda": 2, "r": 0.01, "pesado": true, "ejes": [["simple", 7], ["tridem", 25], ["tandem", 18]]},
+    {"nombre": "Camión con remolque", "tpda": 1, "r": 0.01, "pesado": true, "ejes": [["simple", 7], ["simple", 11], ["tridem", 25], ["tandem", 18]]},
+    {"nombre": "Otros", "tpda": 4, "r": 0.03, "pesado": false, "ejes": [["simple", 1], ["simple", 4]]}
+  ]
+}

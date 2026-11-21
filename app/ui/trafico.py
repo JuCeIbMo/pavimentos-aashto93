@@ -6,7 +6,7 @@ from pavimentos.lef import DatosInvalidos, cargar_lef
 from pavimentos.trafico import esal_total
 
 from .componentes import a_csv as _csv
-from .componentes import aviso, cargar_practico3, ejes_a_str, str_a_ejes, tabla, tarjeta
+from .componentes import aviso, cargar_practico3, ejes_a_str, encabezado, fila_metricas, str_a_ejes, tabla
 
 
 def _a_vehiculos(rows) -> list:
@@ -28,7 +28,10 @@ def _a_vehiculos(rows) -> list:
 
 
 def render():
-    st.header("Módulo 1 · Cálculo de ejes equivalentes (ESAL)")
+    encabezado("Cálculo de ejes equivalentes (ESAL)",
+               "Convierte el TPDA y la composición vehicular en ejes equivalentes de 18 kip.",
+               badge="01")
+
     tablas = cargar_lef()
 
     c1, c2, c3, c4 = st.columns(4)
@@ -63,9 +66,14 @@ def render():
             st.session_state["vehiculos"] = vehiculos
             try:
                 r = esal_total(vehiculos, n, fd, fc, tablas, pt, sn)
-                tarjeta("W18 (ESAL de diseño)", f"{r['total_w']:,.0f}".replace(",", "."))
-                tarjeta("log W18", f"{__import__('math').log10(r['total_w']):.3f}")
-                tarjeta("Vehículos pesados", f"{r['pesados_pct']:.1f} %")
+                fila_metricas([
+                    {"etiqueta": "W18 · ESAL de diseño", "valor": f"{r['total_w']:,.0f}".replace(",", "."),
+                     "sub": "ejes equivalentes acumulados"},
+                    {"etiqueta": "log W18", "valor": f"{__import__('math').log10(r['total_w']):.3f}",
+                     "sub": "escala logarítmica"},
+                    {"etiqueta": "Vehículos pesados", "valor": f"{r['pesados_pct']:.1f} %",
+                     "sub": "del TPDA total"},
+                ])
                 st.session_state["trafico_resultado"] = r
                 tabla(r["por_vehiculo"],
                       ["nombre", "fc", "esal1", "w"])

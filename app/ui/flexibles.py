@@ -7,11 +7,13 @@ import streamlit as st
 from pavimentos.flexible import coef_a1, coef_a2, coef_a3, disenar_capas, r_etapa, zr_de_r
 from pavimentos.unidades import kg_cm2_a_psi
 
-from .componentes import aviso, tabla, tarjeta
+from .componentes import aviso, encabezado, fila_metricas, seccion, tabla
 
 
 def render():
-    st.header("Módulo 4 · Diseño de pavimentos flexibles")
+    encabezado("Diseño de pavimentos flexibles",
+               "Número estructural requerido y espesores de carpeta, base y subbase.",
+               badge="04")
 
     col = st.columns(4)
     w18 = col[0].number_input("W18 (ESAL)", 0.0, None, 890521.0, step=1000.0, format="%.0f")
@@ -25,7 +27,7 @@ def render():
     mr = st.number_input("M_R efectivo de subrasante (psi)", 1000.0, None, 10222.0, step=100.0)
 
     st.divider()
-    st.subheader("Materiales")
+    seccion("Materiales", "Módulos y coeficientes de capa derivados de E y CBR.")
     col3 = st.columns(3)
     e_ca_kg = col3[0].number_input("E concreto asfáltico (kg/cm²)", 1000.0, None, 29880.0)
     cbr_base = col3[1].number_input("CBR base (%)", 0.0, 100.0, 80.0)
@@ -48,8 +50,12 @@ def render():
         try:
             r = disenar_capas(w18, zr, so, delta_psi, mr, e_b, e_sb, a1, a2, a3,
                               m2, m3, min_ca, min_base, min_sb)
-            tarjeta("SN requerido (subrasante)", f"{r['sn3']:.2f}")
-            tarjeta("Estructura", f"{r['d1_cm']:.0f} / {r['d2_cm']:.0f} / {r['d3_cm']:.0f} cm")
+            fila_metricas([
+                {"etiqueta": "SN requerido", "valor": f"{r['sn3']:.2f}",
+                 "sub": "sobre subrasante"},
+                {"etiqueta": "Estructura", "valor": f"{r['d1_cm']:.0f} / {r['d2_cm']:.0f} / {r['d3_cm']:.0f}",
+                 "sub": "carpeta / base / subbase (cm)"},
+            ])
             ok = "✔ cumple" if r["cumple"] else "✘ no cumple"
             st.write(f"**Verificación:** SN aportado {r['sn_total']:.2f} vs SN requerido {r['sn3']:.2f} → {ok}")
             tabla([

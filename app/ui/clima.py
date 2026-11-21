@@ -7,12 +7,13 @@ from pavimentos.flexible import r_etapa, zr_de_r
 from pavimentos.lef import cargar_lef
 from pavimentos.trafico import w_t
 
-from .componentes import aviso, cargar_practico3, tarjeta
+from .componentes import aviso, cargar_practico3, encabezado, fila_metricas, seccion
 
 
 def render():
-    st.header("Módulo 6 · Ajuste de vida útil por clima")
-    st.caption("Evalúa el hinchamiento (y opcionalmente helada) sobre el período de desempeño.")
+    encabezado("Ajuste de vida útil por clima",
+               "Evalúa el hinchamiento (y opcionalmente helada) sobre el período de desempeño.",
+               badge="06")
 
     col = st.columns(4)
     sn = col[0].number_input("SN adoptado", 0.5, 10.0, 3.1, step=0.1)
@@ -23,7 +24,7 @@ def render():
     so = st.number_input("So", 0.0, 1.0, 0.49, step=0.01)
     dpsi = st.number_input("ΔPSI total", 0.0, 4.0, 2.2, step=0.1)
 
-    st.subheader("Hinchamiento")
+    seccion("Hinchamiento", "Pérdida de serviciabilidad por suelos expansivos.")
     c1, c2, c3 = st.columns(3)
     vr = c1.number_input("VR (pulg)", 0.0, None, 2.0, step=0.1)
     ps = c2.number_input("PS (%)", 0.0, 100.0, 60.0, step=1.0)
@@ -46,10 +47,16 @@ def render():
                                    tablas, preset["pt"], preset["sn"])
             zr = zr_de_r(r_etapa(r_global, etapas)) if etapas > 1 else zr_de_r(r_global)
             r = periodo_desempeno(sn, mr, dpsi, zr, so, vr, ps, theta, 15, w_t_fn, helada)
-            tarjeta("Período de desempeño", f"{r['periodo']:.1f} años")
-            tarjeta("ΔPSI ambiental", f"{r['dpsi_sw'] + r['dpsi_fh']:.3f}")
-            tarjeta("ΔPSI remanente (tráfico)", f"{r['dpsi_tr']:.3f}")
-            tarjeta("W admisible", f"{r['w_adm']:,.0f}".replace(",", "."))
+            fila_metricas([
+                {"etiqueta": "Período de desempeño", "valor": f"{r['periodo']:.1f} años",
+                 "sub": "con efecto climático"},
+                {"etiqueta": "ΔPSI ambiental", "valor": f"{r['dpsi_sw'] + r['dpsi_fh']:.3f}",
+                 "sub": "hinchamiento + helada"},
+                {"etiqueta": "ΔPSI remanente", "valor": f"{r['dpsi_tr']:.3f}",
+                 "sub": "disponible para tráfico"},
+                {"etiqueta": "W admisible", "valor": f"{r['w_adm']:,.0f}".replace(",", "."),
+                 "sub": "ESAL soportados"},
+            ])
             st.session_state["clima_resultado"] = r
             with st.expander("Procedimiento e iteraciones"):
                 st.latex(r"\Delta PSI_{SW} = 0.00335\, V_R\, P_S\,(1-e^{-\theta t})")

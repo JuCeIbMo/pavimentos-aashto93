@@ -6,10 +6,56 @@ import os
 import streamlit as st
 
 
-def tarjeta(titulo: str, valor: str, ayuda: str | None = None):
-    st.metric(titulo, valor, help=ayuda)
+# --------------------------------------------------------------------------- #
+#  Bloques visuales (dependen del CSS de theme.py)                            #
+# --------------------------------------------------------------------------- #
+def encabezado(titulo: str, descripcion: str = "", badge: str = ""):
+    st.markdown(
+        f"""<div class="page-head">
+              <div class="page-badge">{badge}</div>
+              <div><h1 class="page-title">{titulo}</h1>
+              <p class="page-sub">{descripcion}</p></div>
+            </div>""",
+        unsafe_allow_html=True,
+    )
 
 
+def seccion(titulo: str, descripcion: str = ""):
+    st.markdown(
+        f"""<div class="section-title">{titulo}</div>
+            <div class="section-sub">{descripcion}</div>""",
+        unsafe_allow_html=True,
+    )
+
+
+def tarjeta(etiqueta: str, valor: str, sub: str = ""):
+    st.markdown(
+        f"""<div class="kpi-card">
+              <div class="kpi-label">{etiqueta}</div>
+              <div class="kpi-value">{valor}</div>
+              {f'<div class="kpi-sub">{sub}</div>' if sub else ''}
+            </div>""",
+        unsafe_allow_html=True,
+    )
+
+
+def fila_metricas(items: list, ncols: int | None = None):
+    """Items: lista de dicts {etiqueta, valor, sub} o tuplas (etiqueta, valor[, sub])."""
+    n = ncols or len(items)
+    cols = st.columns(n)
+    for i, it in enumerate(items):
+        if isinstance(it, dict):
+            et, va, su = it["etiqueta"], it["valor"], it.get("sub", "")
+        else:
+            et, va = it[0], it[1]
+            su = it[2] if len(it) > 2 else ""
+        with cols[i % n]:
+            tarjeta(et, va, su)
+
+
+# --------------------------------------------------------------------------- #
+#  Componentes funcionales                                                    #
+# --------------------------------------------------------------------------- #
 def tabla(datos: list[dict], columnas: list[str] | None = None):
     if columnas:
         datos = [{c: d.get(c) for c in columnas} for d in datos]

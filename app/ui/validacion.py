@@ -10,7 +10,7 @@ from pavimentos.lef import cargar_lef
 from pavimentos.resiliente import mr_efectivo
 from pavimentos.trafico import esal_total, w_t
 
-from .componentes import cargar_practico3, tabla
+from .componentes import cargar_practico3, encabezado, tabla
 
 ESPERADOS = {
     "M_R efectivo (psi)": 10222.0,
@@ -22,7 +22,9 @@ ESPERADOS = {
 
 
 def render():
-    st.header("Validación · Práctico 3")
+    encabezado("Validación · Práctico 3",
+               "Reproduce el Práctico 3 y compara contra los valores de referencia.",
+               badge="✓")
 
     if not st.button("Ejecutar validación del práctico 3", type="primary"):
         st.info("Corré la validación para comparar el paquete contra el práctico 3.")

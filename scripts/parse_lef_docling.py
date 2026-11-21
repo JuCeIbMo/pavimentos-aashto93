@@ -35,6 +35,8 @@ OVERRIDES = {
     ("tridem", "2.5", 0, 14): "008",
     # D.9 (tridem, pt 3.0), col 3, 44 kip: "688" es "888" (0.888)
     ("tridem", "3.0", 2, 44): "0.888",
+    # D.3 (tridem, pt 2.0), col 4, 2 kip: "i 0000" es "0000" (0.0000)
+    ("tridem", "2.0", 3, 2): "0000",
 }
 
 
@@ -65,6 +67,9 @@ def token_a_valor(token: str, prev: float | None):
     digitos = re.sub(r"\D", "", s)
     if not digitos:
         return None
+    if digitos == "000":
+        # token ambiguo: "0.000x" truncado por OCR; se interpola con las vecinas
+        return None
     v = int(digitos)
     if digitos.startswith("0"):
         # ceros a la izquierda: valor pequeño con decimal fijo
@@ -92,10 +97,13 @@ def reconstruir_columna(tokens, es_simple, ancla_idx):
 
 
 def interpolar_huecos(valores):
-    """Rellena None y corrige no-monotonicidad interpolando entre vecinas válidas."""
+    """Rellena los huecos (None) interpolando entre las vecinas válidas más cercanas.
+
+    No reescribe celdas válidas: un token ambiguo se rellena por interpolación,
+    sin promediar (y corromper) a sus vecinas.
+    """
     n = len(valores)
     estimado = [False] * n
-    # primero: huecos (None) con el punto medio de las vecinas válidas más cercanas
     for i in range(n):
         if valores[i] is None:
             izq = next((valores[j] for j in range(i - 1, -1, -1) if valores[j] is not None), None)
@@ -109,14 +117,6 @@ def interpolar_huecos(valores):
             else:
                 valores[i] = 0.0
             estimado[i] = True
-    # luego: monotonicidad (no-decreciente), usando vecinas válidas
-    for i in range(1, n - 1):
-        if not (valores[i - 1] < valores[i] < valores[i + 1]):
-            valores[i] = (valores[i - 1] + valores[i + 1]) / 2
-            estimado[i] = True
-    if n >= 2 and valores[n - 1] <= valores[n - 2]:
-        valores[n - 1] = valores[n - 2] * 1.02
-        estimado[n - 1] = True
     return estimado
 
 
@@ -171,7 +171,7 @@ def main() -> int:
             valores = reconstruir_columna(t["columnas"][j], es_simple=(tipo == "simple"), ancla_idx=ancla_idx)
             est = interpolar_huecos(valores)
             for i in range(1, len(valores)):
-                if valores[i] <= valores[i - 1]:
+                if valores[i] < valores[i - 1]:
                     print(f"WARN: no monótona {tipo} pt={pt} SN={j+1} carga={cargas[i]}: "
                           f"{valores[i-1]} -> {valores[i]}")
             lef.append(valores)

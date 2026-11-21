@@ -52,3 +52,20 @@ def test_sn_fuera_de_rango():
 def test_carga_fuera_de_rango():
     with pytest.raises(DatosInvalidos):
         lef_eje(T, "simple", 2.0, 60.0, 3)
+
+
+def test_todas_las_columnas_monotonas():
+    for tipo in ("simple", "tandem", "tridem"):
+        for pt in ("2.0", "2.5", "3.0"):
+            bloque = T["flexible"][tipo][pt]
+            for j, col in enumerate(bloque["lef"]):
+                assert all(b >= a for a, b in zip(col, col[1:])), \
+                    f"columna no monótona {tipo} pt={pt} SN={j+1}"
+
+
+def test_celdas_reconstruidas_correctas():
+    # celdas que un OCR corrupto dejaba mal (revisión final)
+    assert lef_eje(T, "tridem", 2.0, 2.0, 4) == pytest.approx(0.0000, abs=1e-5)
+    assert lef_eje(T, "tridem", 2.0, 4.0, 4) == pytest.approx(0.0001, abs=1e-5)
+    assert lef_eje(T, "tridem", 3.0, 4.0, 5) == pytest.approx(0.0001, abs=1e-5)
+    assert lef_eje(T, "tridem", 3.0, 4.0, 6) == pytest.approx(0.0001, abs=1e-5)

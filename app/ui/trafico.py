@@ -5,6 +5,7 @@ import streamlit as st
 from pavimentos.lef import DatosInvalidos, cargar_lef
 from pavimentos.trafico import esal_total
 
+from .componentes import a_csv as _csv
 from .componentes import aviso, cargar_practico3, ejes_a_str, str_a_ejes, tabla, tarjeta
 
 
@@ -68,6 +69,8 @@ def render():
                 st.session_state["trafico_resultado"] = r
                 tabla(r["por_vehiculo"],
                       ["nombre", "fc", "esal1", "w"])
+                st.download_button("Descargar tabla (CSV)", _csv(r["por_vehiculo"]),
+                                   file_name="trafico.csv", mime="text/csv")
                 with st.expander("Procedimiento"):
                     st.latex(r"ESAL_1 = TPDA \cdot FC \cdot 365 \cdot F_d \cdot F_c")
                     st.latex(r"W = ESAL_1 \cdot \dfrac{(1+r)^n - 1}{r}")

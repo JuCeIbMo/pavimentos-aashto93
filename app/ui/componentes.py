@@ -45,3 +45,21 @@ def str_a_ejes(s: str) -> list:
         tipo, carga = parte.split()
         ejes.append([tipo, float(carga)])
     return ejes
+
+
+def a_csv(datos: list[dict]) -> str:
+    """Convierte una lista de dicts a CSV (coma decimal, separador ';')."""
+    if not datos:
+        return ""
+    claves = list(datos[0].keys())
+    lineas = [";".join(claves)]
+    for d in datos:
+        fila = []
+        for k in claves:
+            v = d.get(k)
+            if isinstance(v, float):
+                fila.append(f"{v:.4f}".replace(".", ","))
+            else:
+                fila.append(str(v))
+        lineas.append(";".join(fila))
+    return "\n".join(lineas)

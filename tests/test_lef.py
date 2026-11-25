@@ -69,3 +69,16 @@ def test_celdas_reconstruidas_correctas():
     assert lef_eje(T, "tridem", 2.0, 4.0, 4) == pytest.approx(0.0001, abs=1e-5)
     assert lef_eje(T, "tridem", 3.0, 4.0, 5) == pytest.approx(0.0001, abs=1e-5)
     assert lef_eje(T, "tridem", 3.0, 4.0, 6) == pytest.approx(0.0001, abs=1e-5)
+
+
+def test_tandem_y_tridem_hasta_90_kip():
+    # valores leídos de las tablas escaneadas D.2 y D.3 (AASHTO 93, pt = 2,0)
+    assert lef_eje(T, "tandem", 2.0, 90.0, 1) == pytest.approx(94.4, abs=0.05)
+    assert lef_eje(T, "tandem", 2.0, 80.0, 4) == pytest.approx(42.5, abs=0.05)
+    assert lef_eje(T, "tridem", 2.0, 90.0, 6) == pytest.approx(15.2, abs=0.05)
+    assert lef_eje(T, "tridem", 2.0, 60.0, 3) == pytest.approx(2.59, abs=0.01)
+
+
+def test_simple_sigue_limitado_a_50_kip():
+    with pytest.raises(DatosInvalidos):
+        lef_eje(T, "simple", 2.0, 52.0, 3)

@@ -6,7 +6,8 @@ quedan siempre conectados.
 
 Unidades de entrada:
 - CBR en %, M_R y módulos E en psi (la interfaz convierte kg/cm² → psi).
-- Cargas por eje en toneladas (t); el motor convierte a kip.
+- Cargas por eje en toneladas o en kip (Transito.unidad_carga). Si son toneladas, el
+  motor convierte con Transito.kip_por_t (exacto 2,2046 o el ×2 práctico de la cátedra).
 - Espesores mínimos y redondeo en la unidad elegida (cm o pulg).
 """
 
@@ -16,6 +17,9 @@ import copy
 import json
 from dataclasses import asdict, dataclass, field, fields
 
+KIP_POR_T_EXACTO = 2.20462       # 1 t = 1000 kg = 2204,62 lb = 2,20462 kip
+KIP_POR_T_CATEDRA = 2.0          # simplificación usada en clase para leer las tablas a mano
+
 
 @dataclass
 class Vehiculo:
@@ -23,7 +27,7 @@ class Vehiculo:
     tpda: float = 0.0                 # vehículos/día (ambos sentidos)
     r: float = 0.0                    # tasa de crecimiento anual (fracción, 0.03 = 3 %)
     pesado: bool = False
-    ejes: list = field(default_factory=list)   # [["simple"|"tandem"|"tridem", carga_t], ...]
+    ejes: list = field(default_factory=list)   # [["simple"|"tandem"|"tridem", carga], ...] en Transito.unidad_carga
     factor_camion: float | None = None         # si se conoce, reemplaza a los ejes
 
 
@@ -34,6 +38,8 @@ class Transito:
     fc: float = 1.0                   # distribución por carril
     pt: float = 2.0                   # serviciabilidad terminal usada para los LEF
     sn_lef: float = 3.0               # SN supuesto para entrar a las tablas LEF
+    unidad_carga: str = "t"           # unidad de las cargas por eje: "t" | "kip"
+    kip_por_t: float = KIP_POR_T_EXACTO  # conversión t → kip (2,2046 exacto; 2,0 práctico de cátedra)
     vehiculos: list = field(default_factory=list)
 
 

@@ -21,7 +21,7 @@ from pavimentos.modelo import ProyectoFlexible
 from pavimentos.resiliente import DatosInvalidos as ErrorMR
 from pavimentos.resiliente import danio_relativo, mr_de_cbr
 from pavimentos.trafico import factor_crecimiento
-from pavimentos.unidades import cm_a_pulg, pulg_a_cm, t_a_kip
+from pavimentos.unidades import cm_a_pulg, pulg_a_cm
 
 _TABLAS = None
 
@@ -91,6 +91,12 @@ def _resolver_transito(p: ProyectoFlexible, reg: _Registro) -> dict | None:
         return None
     if tr.fd not in (0.5, 1.0) and not (0.3 <= tr.fd <= 0.7):
         reg.aviso("transito", f"Fd = {g(tr.fd)} es inusual: AASHTO recomienda 0,3–0,7 (normalmente 0,5).")
+    if tr.unidad_carga not in ("t", "kip"):
+        reg.aviso("transito", f"Unidad de carga desconocida: {tr.unidad_carga}.", "error")
+        return None
+    if tr.unidad_carga == "t" and not tr.kip_por_t > 0:
+        reg.aviso("transito", "La conversión t → kip debe ser positiva.", "error")
+        return None
     tablas = tablas_lef()
     filas = []
     for v in tr.vehiculos:
@@ -101,23 +107,40 @@ def _resolver_transito(p: ProyectoFlexible, reg: _Registro) -> dict | None:
         else:
             fcam = 0.0
             origen = "ejes"
-            for tipo, carga_t in v.ejes:
-                kip = t_a_kip(float(carga_t))
-                try:
-                    lef = lef_eje(tablas, tipo, tr.pt, kip, tr.sn_lef)
-                except ErrorLEF as e:
-                    reg.aviso("transito", f"{v.nombre}: {e}", "error")
+            for tipo, carga in v.ejes:
+                carga = float(carga)
+                kip = carga if tr.unidad_carga == "kip" else carga * tr.kip_por_t
+                if carga <= 0:
+                    reg.aviso("transito", f"{v.nombre}: falta la carga de un eje {({'tandem': 'tándem', 'tridem': 'trídem'}).get(tipo, tipo)}.", "error")
                     lef = 0.0
-                detalle.append({"tipo": tipo, "carga_t": float(carga_t), "carga_kip": kip, "lef": lef})
+                else:
+                    try:
+                        lef = lef_eje(tablas, tipo, tr.pt, kip, tr.sn_lef)
+                    except ErrorLEF as e:
+                        reg.aviso("transito", f"{v.nombre}: {e}", "error")
+                        lef = 0.0
+                detalle.append({"tipo": tipo, "carga": carga, "unidad": tr.unidad_carga,
+                               "carga_kip": kip, "lef": lef})
                 fcam += lef
-        g = factor_crecimiento(v.r, tr.n)
+        gc = factor_crecimiento(v.r, tr.n)
         esal1 = v.tpda * fcam * 365.0 * tr.fd * tr.fc
         filas.append({
             "nombre": v.nombre, "tpda": v.tpda, "r": v.r, "pesado": v.pesado,
             "factor_camion": fcam, "origen_fc": origen, "ejes": detalle,
-            "g": g, "esal1": esal1, "w": esal1 * g,
-            "w_bruto": v.tpda * fcam * 365.0 * g,  # ambos sentidos, todos los carriles
+            "g": gc, "esal1": esal1, "w": esal1 * gc,
+            "w_bruto": v.tpda * fcam * 365.0 * gc,  # ambos sentidos, todos los carriles
         })
+    if any(f["ejes"] for f in filas):
+        if tr.unidad_carga == "kip":
+            reg.decision("transito", f"Cargas por eje en kip; LEF leídos de las tablas AASHTO (pt = {g(tr.pt)}, "
+                                     f"SN supuesto = {g(tr.sn_lef)}) con interpolación.")
+        else:
+            exacta = abs(tr.kip_por_t - 2.20462) < 1e-3
+            modo = "exacta" if exacta else ("simplificada de cátedra" if tr.kip_por_t == 2 else "personalizada")
+            fac = num(tr.kip_por_t, 4) if exacta else g(tr.kip_por_t)
+            reg.decision("transito", f"Cargas por eje en toneladas, convertidas a kip con 1 t = {fac} kip "
+                                     f"(conversión {modo}); LEF leídos de las tablas AASHTO (pt = {g(tr.pt)}, "
+                                     f"SN supuesto = {g(tr.sn_lef)}) con interpolación.")
     tpda = sum(f["tpda"] for f in filas)
     tpda_p = sum(f["tpda"] for f in filas if f["pesado"])
     total_w = sum(f["w"] for f in filas)
@@ -136,7 +159,8 @@ def _resolver_transito(p: ProyectoFlexible, reg: _Registro) -> dict | None:
         "pesados_pct": 100.0 * tpda_p / tpda if tpda else 0.0,
         "esal1_total": sum(f["esal1"] for f in filas),
         "w18": total_w, "n": tr.n, "fd": tr.fd, "fc": tr.fc,
-        "pt_lef": tr.pt, "sn_lef": tr.sn_lef, "_w_t": w_t,
+        "pt_lef": tr.pt, "sn_lef": tr.sn_lef, "unidad_carga": tr.unidad_carga,
+        "kip_por_t": tr.kip_por_t, "_w_t": w_t,
     }
 
 

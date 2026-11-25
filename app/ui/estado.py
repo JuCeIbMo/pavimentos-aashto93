@@ -52,3 +52,10 @@ def proyecto_inicial() -> ProyectoFlexible:
             p.nombre = "Mi proyecto (basado en el Práctico 3)"
             return p
     return ProyectoFlexible()
+
+
+def refrescar():
+    """Reinicia los widgets para que relean el proyecto (tras agregar/borrar filas)."""
+    st.session_state["ver"] = ver() + 1
+    st.session_state.pop("pdf_bytes", None)
+    st.session_state.pop("xlsx_bytes", None)

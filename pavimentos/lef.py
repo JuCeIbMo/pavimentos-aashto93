@@ -13,7 +13,7 @@ class DatosInvalidos(ValueError):
 RUTA_DEFECTO = os.path.join(os.path.dirname(__file__), "..", "data", "lef.json")
 
 CARGAS_MIN = 2.0
-CARGAS_MAX = 50.0
+CARGAS_MAX = 90.0  # simple: hasta 50 kip; tándem y trídem: hasta 90 kip (tablas D)
 SN_MIN = 1
 SN_MAX = 6
 PTS = ("2.0", "2.5", "3.0")
@@ -51,11 +51,11 @@ def lef_eje(tablas: dict, tipo_eje: str, pt: float, carga_kip: float, sn: float)
         raise DatosInvalidos(f"pt fuera de rango: {pt}")
     if not (SN_MIN <= sn <= SN_MAX):
         raise DatosInvalidos(f"SN fuera de [1, 6]: {sn}")
-    if not (CARGAS_MIN <= carga_kip <= CARGAS_MAX):
-        raise DatosInvalidos(f"Carga fuera de [2, 50] kip: {carga_kip}")
-
     bloque = tablas["flexible"][tipo_eje][pt_s]
     cargas = bloque["cargas"]
+    if not (cargas[0] <= carga_kip <= cargas[-1]):
+        raise DatosInvalidos(
+            f"Carga de eje {tipo_eje} fuera de la tabla AASHTO [{cargas[0]:g}, {cargas[-1]:g}] kip: {carga_kip:.1f} kip")
     sns = bloque["sn"]
     lef = bloque["lef"]
 

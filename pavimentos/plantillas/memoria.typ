@@ -145,7 +145,7 @@
   datos((
     ([Período de diseño n], t.n + " años"), ([Distribución direccional F#sub[d]], t.fd),
     ([Distribución por carril F#sub[c]], t.fc), ([p#sub[t] / SN para LEF], t.pt + " / " + t.sn),
-    ([TPDA total], t.tpda + " veh/día"), ([Vehículos pesados], t.pesados),
+    ([TPDA total], t.tpda + " veh/día"),
   ))
   [
     $ G = ((1+r)^n - 1) / r #h(2em) W_18 = sum_i "TPDA"_i dot "FC"_i dot 365 dot F_d dot F_c dot G_i $
@@ -160,8 +160,8 @@
   ]
   if t.ejes.len() > 0 {
     [== Factores de equivalencia por eje]
-    tabla((2fr, 1fr, 1fr, 1fr, 1fr), ("Vehículo", "Tipo de eje", "Carga (t)", "Carga (kip)", "LEF"), t.ejes)
-    fuente[AASHTO (1993), Apéndice D. Interpolación bilineal en carga y SN.]
+    tabla((2fr, 1fr, 1fr, 1fr, 1fr), ("Vehículo", "Tipo de eje", "Carga (" + t.unidad_carga + ")", "Carga usada (kip)", "LEF"), t.ejes)
+    fuente[AASHTO (1993), Apéndice D. Interpolación bilineal en carga y SN. #t.conversion]
   }
 }
 

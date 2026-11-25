@@ -135,14 +135,18 @@ def generar_excel(p: ProyectoFlexible, res: dict | None = None) -> bytes:
             hl = _Hoja(wl, "Factores de equivalencia de carga por eje",
                        f"AASHTO 93, Apéndice D · pt = {tr['pt_lef']:g} · SN supuesto = {tr['sn_lef']:g} · interpolación bilineal")
             hl.anchos(30, 12, 12, 12, 12)
-            hl.encabezado(["Vehículo", "Tipo de eje", "Carga (t)", "Carga (kip)", "LEF"])
+            en_t = tr["unidad_carga"] == "t"
+            hl.encabezado(["Vehículo", "Tipo de eje", f"Carga ({tr['unidad_carga']})", "Carga usada (kip)", "LEF"])
+            if en_t:
+                wl.cell(2, 7, "kip por tonelada")
+                wl.cell(2, 8, tr["kip_por_t"]).fill = R_DATO
             for f in tr["filas"]:
                 for e in f["ejes"]:
                     i = hl.fila
                     wl.cell(i, 1, f["nombre"])
                     wl.cell(i, 2, e["tipo"])
-                    wl.cell(i, 3, e["carga_t"])
-                    wl.cell(i, 4, f"=C{i}*2")
+                    wl.cell(i, 3, e["carga"])
+                    wl.cell(i, 4, f"=C{i}*$H$2" if en_t else f"=C{i}").number_format = "0.00"
                     wl.cell(i, 5, round(e["lef"], 6)).number_format = N4
                     hl.fila += 1
     else:

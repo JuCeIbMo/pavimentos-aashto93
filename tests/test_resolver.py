@@ -106,3 +106,25 @@ def test_espesores_en_pulgadas():
     for c in r["capas"]["capas"]:
         assert (c["d"] * 2) == pytest.approx(round(c["d"] * 2))
     assert r["capas"]["cumple"]
+
+
+def test_cargas_en_kip_equivalen_a_toneladas():
+    from pavimentos.modelo import KIP_POR_T_EXACTO
+    from pavimentos.validacion import listar
+    base = next(ProyectoFlexible.from_dict(e["proyecto"]) for e in listar() if e["id"].startswith("01"))
+    base.transito.kip_por_t = KIP_POR_T_EXACTO
+    en_kip = base.copia()
+    en_kip.transito.unidad_carga = "kip"
+    for v in en_kip.transito.vehiculos:
+        v.ejes = [[t, c * KIP_POR_T_EXACTO] for t, c in v.ejes]
+    a, b = resolver(base)["transito"]["w18"], resolver(en_kip)["transito"]["w18"]
+    assert a == pytest.approx(b, rel=1e-9)
+    # la conversión exacta da más tránsito que la de cátedra (×2): las cargas son mayores
+    assert a > 890521
+
+
+def test_eje_sin_carga_es_error():
+    p = ProyectoFlexible()
+    p.transito.vehiculos = [Vehiculo(nombre="X", tpda=10, ejes=[["tandem", 0.0]])]
+    res = resolver(p)
+    assert any("falta la carga" in a["texto"] for a in res["avisos"])

@@ -1,8 +1,9 @@
+# Compose para Dokploy (o cualquier servidor con proxy delante).
+# Dokploy enruta el dominio al puerto 8000 del servicio "pavimentos" vía Traefik.
+# Para probar en local sin proxy:  docker compose run --service-ports  o  ./run.sh
 services:
   pavimentos:
     build: .
-    image: pavimentos-aashto93
-    container_name: pavimentos
     restart: unless-stopped
-    ports:
-      - "8000:8000"   # en el VPS, poné un proxy (Caddy/Nginx) delante con tu dominio
+    expose:
+      - "8000"

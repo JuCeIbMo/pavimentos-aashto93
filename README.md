@@ -36,7 +36,7 @@ cd web && pnpm install
 ## Despliegue (Docker)
 
 ```bash
-docker compose up -d --build     # la app queda en el puerto 8000
+docker compose up -d --build     # pensado para Dokploy: el dominio apunta al puerto 8000 del servicio
 ```
 
 Una sola imagen: compila la interfaz React y la sirve desde FastAPI junto con la API.

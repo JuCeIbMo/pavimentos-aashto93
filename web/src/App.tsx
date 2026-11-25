@@ -1,6 +1,6 @@
 import {
   BookOpen, CheckCircle2, CircleDashed, CloudSnow, FileDown, FileSpreadsheet, FolderOpen, Gauge, House, Layers,
-  Loader2, Mountain, Save, ShieldCheck, Truck, TriangleAlert,
+  Loader2, Menu, Mountain, Save, ShieldCheck, Truck, TriangleAlert, X,
 } from 'lucide-react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { cx } from './components/ui'
@@ -35,8 +35,9 @@ function nombreArchivo(nombre: string) {
   return (nombre || 'proyecto').normalize('NFKD').replace(/[^\w\- ]/g, '').trim().replace(/\s+/g, '_').slice(0, 60) || 'proyecto'
 }
 
-function Sidebar() {
-  const { pagina, ir, resultado, proyecto } = useApp()
+function Sidebar({ abierto, cerrar }: { abierto: boolean; cerrar: () => void }) {
+  const { pagina, ir: irA, resultado, proyecto } = useApp()
+  const ir = (x: Pagina) => { irA(x); cerrar() }
   const p = proyecto as Proyecto
   const enlace = (it: ItemNav) => {
     const est = it.estado?.(resultado, p)
@@ -58,7 +59,13 @@ function Sidebar() {
     )
   }
   return (
-    <aside className="fixed inset-y-0 left-0 z-20 flex w-64 flex-col bg-slate-950 px-3 py-4">
+    <>
+    {abierto && <div onClick={cerrar} className="fixed inset-0 z-30 bg-slate-950/50 lg:hidden" />}
+    <aside className={cx('fixed inset-y-0 left-0 z-40 flex w-64 flex-col overflow-y-auto bg-slate-950 px-3 py-4 transition-transform duration-200 lg:translate-x-0',
+      abierto ? 'translate-x-0' : '-translate-x-full')}>
+      <button onClick={cerrar} aria-label="Cerrar menú" className="absolute right-3 top-4 grid h-9 w-9 place-items-center rounded-lg text-slate-400 hover:bg-white/10 lg:hidden">
+        <X className="h-5 w-5" />
+      </button>
       <button onClick={() => ir('inicio')} className="mb-6 flex items-center gap-3 px-2 text-left">
         <div className="flex h-10 w-10 flex-col justify-center gap-[3px] rounded-xl bg-slate-800 px-2">
           <span className="h-[5px] rounded-sm bg-acento-500" />
@@ -83,10 +90,11 @@ function Sidebar() {
         Método AASHTO 1993
       </div>
     </aside>
+    </>
   )
 }
 
-function BarraSuperior() {
+function BarraSuperior({ abrirMenu }: { abrirMenu: () => void }) {
   const { proyecto, resultado, resolviendo, error, reemplazar } = useApp()
   const p = proyecto as Proyecto
   const [exportando, setExportando] = useState<'pdf' | 'excel' | null>(null)
@@ -110,40 +118,43 @@ function BarraSuperior() {
 
   return (
     <div className="sticky top-0 z-10 border-b border-slate-200 bg-white">
-      <div className="mx-auto flex h-14 max-w-[1400px] items-center gap-4 px-8">
+      <div className="mx-auto flex h-14 max-w-[1400px] items-center gap-2 px-4 sm:gap-4 lg:px-8">
+        <button onClick={abrirMenu} aria-label="Abrir menú" className="-ml-1 grid h-9 w-9 shrink-0 place-items-center rounded-lg text-slate-600 hover:bg-slate-100 lg:hidden">
+          <Menu className="h-5 w-5" />
+        </button>
         <div className="min-w-0 flex-1">
           <div className="truncate text-[14px] font-semibold text-slate-900">{p.nombre || 'Proyecto sin título'}</div>
-          <div className="flex items-center gap-1.5 text-[12px] text-slate-500">
+          <div className="flex min-w-0 items-center gap-1.5 truncate text-[12px] text-slate-500 [&>svg]:shrink-0">
             {resolviendo ? <><Loader2 className="h-3 w-3 animate-spin" /> Calculando…</>
               : error ? <><TriangleAlert className="h-3 w-3 text-red-500" /> Sin conexión con el motor de cálculo</>
                 : errores ? <><TriangleAlert className="h-3 w-3 text-red-500" /> {errores} error{errores > 1 ? 'es' : ''} en los datos</>
-                  : completo ? <><CheckCircle2 className="h-3 w-3 text-emerald-500" /> Diseño completo · W18 = {entero(resultado!.diseno!.w18)} · SN = {num(resultado!.diseno!.sn_requerido, 2)} · el PDF y el Excel salen con estos datos</>
+                  : completo ? <><CheckCircle2 className="h-3 w-3 text-emerald-500" /> Diseño completo · W18 = {entero(resultado!.diseno!.w18)} · SN = {num(resultado!.diseno!.sn_requerido, 2)} <span className="hidden xl:inline">· el PDF y el Excel salen con estos datos</span></>
                     : <><CircleDashed className="h-3 w-3" /> Diseño incompleto</>}
           </div>
         </div>
-        {msg && <span className="max-w-xs truncate text-[12.5px] text-red-600" title={msg}>{msg}</span>}
-        <div className="flex items-center gap-1.5">
-          <button onClick={() => archivo.current?.click()} title="Abrir un proyecto guardado (.json)"
-            className="inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-[13.5px] font-medium text-slate-600 hover:bg-slate-100">
-            <FolderOpen className="h-4 w-4" /> Abrir
+        {msg && <span className="hidden max-w-xs truncate md:inline text-[12.5px] text-red-600" title={msg}>{msg}</span>}
+        <div className="flex shrink-0 items-center gap-1">
+          <button onClick={() => archivo.current?.click()} aria-label="Abrir" title="Abrir un proyecto guardado (.json)"
+            className="inline-flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-[13.5px] sm:px-3 font-medium text-slate-600 hover:bg-slate-100">
+            <FolderOpen className="h-4 w-4" /> <span className="hidden md:inline">Abrir</span>
           </button>
           <input ref={archivo} type="file" accept=".json,application/json" className="hidden"
             onChange={(e) => { const f = e.target.files?.[0]; if (f) abrir(f); e.target.value = '' }} />
-          <button title="Guardar el proyecto como archivo .json"
+          <button title="Guardar el proyecto como archivo .json" aria-label="Guardar"
             onClick={() => guardarBlob(new Blob([JSON.stringify(p, null, 2)], { type: 'application/json' }), `${nombreArchivo(p.nombre)}.json`)}
-            className="inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-[13.5px] font-medium text-slate-600 hover:bg-slate-100">
-            <Save className="h-4 w-4" /> Guardar
+            className="inline-flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-[13.5px] sm:px-3 font-medium text-slate-600 hover:bg-slate-100">
+            <Save className="h-4 w-4" /> <span className="hidden md:inline">Guardar</span>
           </button>
-          <span className="mx-1.5 h-6 w-px bg-slate-200" />
+          <span className="mx-1 hidden h-6 w-px bg-slate-200 sm:block" />
           <button disabled={!completo || !!exportando} onClick={() => exportar('excel')}
             title={completo ? 'Libro Excel con fórmulas vivas' : 'Completá el diseño para exportar'}
-            className="inline-flex h-9 items-center gap-1.5 rounded-lg px-3 text-[13.5px] font-medium text-slate-700 ring-1 ring-slate-300 hover:bg-slate-50 disabled:opacity-40">
-            {exportando === 'excel' ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4 text-emerald-600" />} Excel
+            className="inline-flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-[13.5px] sm:px-3 font-medium text-slate-700 ring-1 ring-slate-300 hover:bg-slate-50 disabled:opacity-40">
+            {exportando === 'excel' ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileSpreadsheet className="h-4 w-4 text-emerald-600" />} <span className="hidden sm:inline">Excel</span>
           </button>
           <button disabled={!completo || !!exportando} onClick={() => exportar('pdf')}
             title={completo ? 'Memoria de cálculo en PDF' : 'Completá el diseño para exportar'}
-            className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-slate-900 px-3.5 text-[13.5px] font-medium text-white hover:bg-slate-800 disabled:opacity-40">
-            {exportando === 'pdf' ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />} Memoria PDF
+            className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-slate-900 px-3 text-[13.5px] sm:px-3.5 font-medium text-white hover:bg-slate-800 disabled:opacity-40">
+            {exportando === 'pdf' ? <Loader2 className="h-4 w-4 animate-spin" /> : <FileDown className="h-4 w-4" />} <span className="hidden sm:inline">Memoria</span> PDF
           </button>
         </div>
       </div>
@@ -164,6 +175,7 @@ const PAGINAS: Record<Pagina, () => ReactNode> = {
 
 export default function App() {
   const { proyecto, iniciar, pagina, version, error } = useApp()
+  const [menu, setMenu] = useState(false)
   useEffect(() => { iniciar().catch(() => useApp.setState({ error: 'No se pudo conectar con la API.' })) }, [iniciar])
   if (!proyecto) {
     return (
@@ -174,10 +186,10 @@ export default function App() {
     )
   }
   return (
-    <div className="min-h-screen pl-64">
-      <Sidebar />
-      <BarraSuperior />
-      <main key={`${pagina}-${version}`} className="mx-auto max-w-[1400px] px-8 py-8">
+    <div className="min-h-screen lg:pl-64">
+      <Sidebar abierto={menu} cerrar={() => setMenu(false)} />
+      <BarraSuperior abrirMenu={() => setMenu(true)} />
+      <main key={`${pagina}-${version}`} className="mx-auto max-w-[1400px] px-4 py-5 sm:px-6 lg:px-8 lg:py-8">
         {PAGINAS[pagina]()}
       </main>
     </div>

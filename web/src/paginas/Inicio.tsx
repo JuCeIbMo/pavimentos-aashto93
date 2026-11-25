@@ -25,10 +25,10 @@ export default function Inicio() {
 
   return (
     <div className="space-y-8">
-      <section className="rounded-2xl bg-slate-950 px-10 py-10 text-white">
+      <section className="rounded-2xl bg-slate-950 px-6 py-7 text-white sm:px-10 sm:py-10">
         <div className="max-w-3xl">
-          <h1 className="text-balance text-[34px] font-semibold leading-tight tracking-tight">Del tránsito a los espesores, con cada decisión explicada.</h1>
-          <p className="mt-3 text-[16px] leading-relaxed text-slate-300">
+          <h1 className="text-balance text-[26px] sm:text-[34px] font-semibold leading-tight tracking-tight">Del tránsito a los espesores, con cada decisión explicada.</h1>
+          <p className="mt-3 text-[15px] leading-relaxed text-slate-300 sm:text-[16px]">
             Cargá los datos módulo por módulo: los resultados se recalculan al instante y alimentan al módulo siguiente.
             Al final exportá la memoria de cálculo en PDF o el libro Excel con fórmulas vivas.
           </p>

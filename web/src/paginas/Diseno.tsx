@@ -93,7 +93,7 @@ export default function Diseno() {
 
       <Tarjeta titulo="Confiabilidad y serviciabilidad" sub="El selector de la izquierda de cada recuadro es un atajo con la tabla; el valor de la derecha es el que entra al cálculo y se puede corregir a mano.">
         <div className="grid grid-cols-1 gap-x-4 gap-y-5 xl:grid-cols-[2.4fr_1.6fr]">
-          <Grupo columnas="grid-cols-[1.3fr_1fr_0.9fr]">
+          <Grupo columnas="sm:grid-cols-[1.3fr_1fr_0.9fr]">
             <CampoSelector etiqueta="Tipo de vía (tabla 4.3)" valor={d.tipo_via ?? 'otro'}
               opciones={[...Object.entries(TABLA_R).map(([k, v]) => ({ valor: k, etiqueta: v.nombre })), { valor: 'otro', etiqueta: 'Otro (a mano)' }]}
               alCambiar={(v) => editar((p) => { p.diseno.tipo_via = v === 'otro' ? null : v; aplicarR(p.diseno) })} />
@@ -106,7 +106,7 @@ export default function Diseno() {
               <Pista>{rangoR ? `Tabla 4.3: ${rangoTxt(rangoR)} %` : 'Elegí el tipo de vía'}</Pista>
             </div>
           </Grupo>
-          <Grupo columnas="grid-cols-[1.4fr_1fr]">
+          <Grupo columnas="sm:grid-cols-[1.4fr_1fr]">
             <CampoSelector etiqueta="Errores en el tránsito (tabla 4.2)" valor={d.so === 0.49 ? 'con' : d.so === 0.44 ? 'sin' : 'otro'}
               opciones={[{ valor: 'con', etiqueta: 'Con errores (0,49)' }, { valor: 'sin', etiqueta: 'Sin errores (0,44)' }, { valor: 'otro', etiqueta: 'Otro valor (a mano)' }]}
               alCambiar={(v) => { if (v !== 'otro') editar((p) => { p.diseno.so = v === 'con' ? 0.49 : 0.44 }) }} />
@@ -116,7 +116,7 @@ export default function Diseno() {
               <Pista>Flexible: 0,40 – 0,50</Pista>
             </div>
           </Grupo>
-          <Grupo columnas="grid-cols-[1.3fr_1fr_0.9fr]">
+          <Grupo columnas="sm:grid-cols-[1.3fr_1fr_0.9fr]">
             <CampoSelector etiqueta="Importancia de la vía" valor={d.pt === 2.5 ? 'principal' : d.pt === 2 ? 'menor' : 'otro'}
               opciones={[{ valor: 'principal', etiqueta: 'Vía principal (pt 2,5)' }, { valor: 'menor', etiqueta: 'Tránsito menor (pt 2,0)' }, { valor: 'otro', etiqueta: 'Otro valor (a mano)' }]}
               alCambiar={(v) => { if (v !== 'otro') editar((p) => { p.diseno.pt = v === 'principal' ? 2.5 : 2 }) }} />
@@ -392,7 +392,7 @@ function Drenaje() {
 
 /** Recuadro gris: atajo con tabla + valor editable. */
 function Grupo({ children, columnas }: { children: ReactNode; columnas: string }) {
-  return <div className={cx('grid gap-3 rounded-xl bg-slate-50 p-3 ring-1 ring-slate-200/70', columnas)}>{children}</div>
+  return <div className={cx('grid grid-cols-1 gap-3 rounded-xl bg-slate-50 p-3 ring-1 ring-slate-200/70', columnas)}>{children}</div>
 }
 
 function Pista({ children }: { children: ReactNode }) {

@@ -56,7 +56,7 @@ export default function Clima() {
           <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
             <Tarjeta titulo="Hinchamiento (suelos expansivos)"
               acciones={<Interruptor activo={c.hinchamiento} alCambiar={(v) => editar((p) => { p.clima.hinchamiento = v })}>Incluir</Interruptor>}>
-              <div className={cx('grid grid-cols-3 gap-4', !c.hinchamiento && 'pointer-events-none opacity-40')}>
+              <div className={cx('grid grid-cols-1 gap-4 sm:grid-cols-3', !c.hinchamiento && 'pointer-events-none opacity-40')}>
                 <CampoNumero etiqueta="VR (pulg)" ayuda={AYUDA.vr} valor={c.vr} min={0} max={10} alCambiar={(v) => editar((p) => { p.clima.vr = v ?? 0 })} />
                 <CampoNumero etiqueta="PS (%)" ayuda={AYUDA.ps} valor={c.ps} dec={1} min={0} max={100} alCambiar={(v) => editar((p) => { p.clima.ps = v ?? 0 })} />
                 <CampoNumero etiqueta="θ" ayuda={AYUDA.theta} valor={c.theta} dec={3} min={0} max={0.3} alCambiar={(v) => editar((p) => { p.clima.theta = v ?? 0 })} />
@@ -65,7 +65,7 @@ export default function Clima() {
             <Tarjeta titulo="Levantamiento por helada"
               acciones={<Interruptor activo={c.helada != null} alCambiar={(v) => editar((p) => { p.clima.helada = v ? { pf: 50, dpsi_max: 1, phi: 2 } : null })}>Incluir</Interruptor>}>
               {c.helada ? (
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
                   <CampoNumero etiqueta="PF (%)" ayuda={AYUDA.pf} valor={c.helada.pf} dec={1} min={0} max={100} alCambiar={(v) => editar((p) => { p.clima.helada!.pf = v ?? 0 })} />
                   <CampoNumero etiqueta="ΔPSI máx" ayuda={AYUDA.dpsi_max} valor={c.helada.dpsi_max} min={0} max={3} alCambiar={(v) => editar((p) => { p.clima.helada!.dpsi_max = v ?? 0 })} />
                   <CampoNumero etiqueta="φ (mm/día)" ayuda={AYUDA.phi} valor={c.helada.phi} dec={1} min={0} max={30} alCambiar={(v) => editar((p) => { p.clima.helada!.phi = v ?? 0 })} />

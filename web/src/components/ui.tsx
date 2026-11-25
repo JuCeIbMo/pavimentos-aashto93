@@ -12,12 +12,12 @@ export function cx(...c: (string | false | null | undefined)[]) {
 // ------------------------------------------------------------------ estructura de página
 export function Encabezado({ num: n, titulo, sub }: { num: ReactNode; titulo: string; sub: string }) {
   return (
-    <header className="mb-6 flex items-start gap-4">
-      <div className="num grid h-12 w-12 shrink-0 place-items-center rounded-xl border border-slate-200 bg-white text-lg font-semibold text-slate-700">
+    <header className="mb-6 flex items-start gap-3 sm:gap-4">
+      <div className="num grid h-10 w-10 shrink-0 place-items-center rounded-xl border sm:h-12 sm:w-12 border-slate-200 bg-white text-lg font-semibold text-slate-700">
         {n}
       </div>
       <div>
-        <h1 className="text-2xl font-semibold tracking-tight text-slate-900">{titulo}</h1>
+        <h1 className="text-xl font-semibold tracking-tight text-slate-900 sm:text-2xl">{titulo}</h1>
         <p className="mt-0.5 text-[15px] text-slate-500">{sub}</p>
       </div>
     </header>
@@ -58,13 +58,31 @@ export function Kpis({ children }: { children: ReactNode }) {
 }
 
 // ------------------------------------------------------------------ campos
+/** Ícono de ayuda: el globo se abre con el mouse, con el teclado o con un toque, y nunca se sale de la pantalla. */
 export function Ayuda({ texto }: { texto: ReactNode }) {
+  const [pos, setPos] = useState<{ left: number; bottom: number } | null>(null)
+  const abrir = (e: { currentTarget: HTMLElement }) => {
+    const r = e.currentTarget.getBoundingClientRect()
+    const ancho = Math.min(256, window.innerWidth - 16)
+    setPos({
+      left: Math.max(8, Math.min(r.left + r.width / 2 - ancho / 2, window.innerWidth - 8 - ancho)),
+      bottom: window.innerHeight - r.top + 8,
+    })
+  }
   return (
-    <span className="group relative inline-flex align-middle">
+    <span tabIndex={0} role="button" aria-label="Ayuda" className="inline-flex rounded-full align-middle"
+      onPointerEnter={(e) => { if (e.pointerType === 'mouse') abrir(e) }}
+      onPointerLeave={(e) => { if (e.pointerType === 'mouse') setPos(null) }}
+      onBlur={() => setPos(null)}
+      onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (pos) setPos(null); else abrir(e) } }}
+      onClick={(e) => { e.preventDefault(); if (pos && !window.matchMedia('(hover: hover)').matches) setPos(null); else abrir(e) }}>
       <CircleHelp className="h-3.5 w-3.5 cursor-help text-slate-400 hover:text-slate-600" />
-      <span className="pointer-events-none absolute bottom-full left-1/2 z-30 mb-2 w-72 -translate-x-1/2 rounded-lg bg-slate-900 px-3 py-2 text-[12.5px] font-normal normal-case leading-snug tracking-normal text-slate-100 opacity-0 shadow-lg transition group-hover:opacity-100">
-        {texto}
-      </span>
+      {pos && (
+        <span role="tooltip" style={{ left: pos.left, bottom: pos.bottom, width: Math.min(256, window.innerWidth - 16) }}
+          className="pointer-events-none fixed z-50 rounded-lg bg-slate-900 px-3 py-2 text-[12.5px] font-normal normal-case leading-snug tracking-normal text-slate-100 shadow-lg">
+          {texto}
+        </span>
+      )}
     </span>
   )
 }
@@ -352,7 +370,7 @@ export function Tabla({ children, className }: { children: ReactNode; className?
 }
 export const th = 'border-b border-slate-200 bg-slate-50 px-3 py-2 text-left text-[12.5px] font-medium text-slate-600'
 export const td = 'border-b border-slate-100 px-3 py-2 text-slate-700'
-export const tdNum = 'border-b border-slate-100 px-3 py-2 text-right font-mono num text-slate-800'
+export const tdNum = 'whitespace-nowrap border-b border-slate-100 px-3 py-2 text-right font-mono num text-slate-800'
 
 export function Barra({ valor, max = 100 }: { valor: number; max?: number }) {
   return (

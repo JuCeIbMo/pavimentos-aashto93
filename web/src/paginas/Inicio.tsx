@@ -25,17 +25,12 @@ export default function Inicio() {
 
   return (
     <div className="space-y-8">
-      <section className="rounded-2xl bg-slate-950 px-6 py-7 text-white sm:px-10 sm:py-10">
-        <div className="max-w-3xl">
-          <h1 className="text-balance text-[26px] sm:text-[34px] font-semibold leading-tight tracking-tight">Del tránsito a los espesores, con cada decisión explicada.</h1>
-          <p className="mt-3 text-[15px] leading-relaxed text-slate-300 sm:text-[16px]">
-            Cargá los datos módulo por módulo: los resultados se recalculan al instante y alimentan al módulo siguiente.
-            Al final exportá la memoria de cálculo en PDF o el libro Excel con fórmulas vivas.
-          </p>
-          <p className="mt-5 text-[13.5px] text-slate-400">
-            Módulos 1, 2, 4 y 6 conectados · validado con 4 ejercicios · sensibilidad y escenarios
-          </p>
-        </div>
+      <section className="max-w-3xl">
+        <h1 className="text-2xl font-semibold tracking-tight text-slate-900 sm:text-[28px]">Diseño de pavimentos flexibles</h1>
+        <p className="mt-1.5 text-[15px] leading-relaxed text-slate-600">
+          Método AASHTO 1993. Completá los módulos en orden; cada resultado pasa al siguiente.
+          Al terminar, exportá la memoria de cálculo en PDF o el libro en Excel.
+        </p>
       </section>
 
       <div>

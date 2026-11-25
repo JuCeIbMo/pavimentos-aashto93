@@ -1,9 +1,9 @@
 """Componentes reutilizables de la interfaz Streamlit."""
 
-import json
-import os
-
 import streamlit as st
+
+from pavimentos.formato import num
+from pavimentos.referencias import ECUACIONES
 
 
 # --------------------------------------------------------------------------- #
@@ -71,41 +71,63 @@ def aviso(mensaje: str, tipo: str = "info"):
         st.info(mensaje)
 
 
-def cargar_practico3() -> dict:
-    """Carga el preset del práctico 3 (composición vehicular)."""
-    ruta = os.path.join(os.path.dirname(__file__), "..", "..", "data", "validacion", "practico3.json")
-    with open(ruta, encoding="utf-8") as f:
-        return json.load(f)
+def ecuacion(clave: str, mostrar_explicacion: bool = True):
+    """Ecuación en LaTeX con su fuente bibliográfica y una explicación breve."""
+    e = ECUACIONES[clave]
+    st.latex(e["latex"])
+    texto = f"📖 *Fuente: {e['fuente']}*"
+    if mostrar_explicacion:
+        texto += f" — {e['explica']}"
+    st.caption(texto)
 
 
-def ejes_a_str(ejes: list) -> str:
-    return "; ".join(f"{tipo} {carga}" for tipo, carga in ejes)
+def concepto(titulo: str, texto: str):
+    """Bloque didáctico desplegable con la explicación conceptual del módulo."""
+    with st.expander(f"💡 {titulo}"):
+        st.markdown(texto, unsafe_allow_html=True)
 
 
-def str_a_ejes(s: str) -> list:
-    ejes = []
-    for parte in s.replace(",", ";").split(";"):
-        parte = parte.strip()
-        if not parte:
+def avisos(res: dict, modulo: str | None = None):
+    for a in res.get("avisos", []):
+        if modulo is None or a["modulo"] == modulo:
+            aviso(a["texto"], a["nivel"])
+
+
+def decisiones(res: dict, modulo: str | None = None):
+    ds = [d for d in res.get("decisiones", []) if modulo is None or d["modulo"] == modulo]
+    if ds:
+        st.markdown("**Decisiones de diseño**")
+        for d in ds:
+            st.markdown(f"- {d['texto']}")
+
+
+_COLORES = ("#374151", "#D6B46B", "#E8DCC0")
+
+
+def estructura(capas: dict, mr: float | None = None, alto_px: int = 260):
+    """Dibujo a escala del paquete estructural (HTML)."""
+    total = sum(c["d_cm"] for c in capas["capas"]) or 1
+    u = capas["unidad"]
+    bloques = []
+    for i, c in enumerate(capas["capas"]):
+        if c["d_cm"] <= 0:
             continue
-        tipo, carga = parte.split()
-        ejes.append([tipo, float(carga)])
-    return ejes
-
-
-def a_csv(datos: list[dict]) -> str:
-    """Convierte una lista de dicts a CSV (coma decimal, separador ';')."""
-    if not datos:
-        return ""
-    claves = list(datos[0].keys())
-    lineas = [";".join(claves)]
-    for d in datos:
-        fila = []
-        for k in claves:
-            v = d.get(k)
-            if isinstance(v, float):
-                fila.append(f"{v:.4f}".replace(".", ","))
-            else:
-                fila.append(str(v))
-        lineas.append(";".join(fila))
-    return "\n".join(lineas)
+        h = max(22, alto_px * c["d_cm"] / total)
+        color_txt = "#fff" if i == 0 else "#1F2937"
+        m_txt = "" if c["m"] is None else f" · m = {num(c['m'], 2)}"
+        bloques.append(
+            f"<div style='display:flex;align-items:center;gap:12px'>"
+            f"<div style='width:46%;height:{h:.0f}px;background:{_COLORES[i]};border:1px solid #1F2937;"
+            f"display:flex;align-items:center;justify-content:center;color:{color_txt};font-weight:700'>"
+            f"{num(c['d'], 1)} {u}</div>"
+            f"<div style='font-size:.9rem'><b>{c['capa']}</b><br><span style='color:#6B7280'>"
+            f"a = {num(c['a'], 3)}{m_txt} · aporta SN {num(c['sn_aporte'], 2)}"
+            f"</span></div></div>")
+    sub = f"Subrasante · M<sub>R</sub> = {num(mr, 0)} psi" if mr else "Subrasante"
+    bloques.append(
+        "<div style='display:flex;align-items:center;gap:12px'>"
+        "<div style='width:46%;height:26px;border:1px solid #1F2937;background:repeating-linear-gradient("
+        "45deg,#fff,#fff 5px,#D1D5DB 5px,#D1D5DB 6px)'></div>"
+        f"<div style='font-size:.9rem'>{sub}</div></div>")
+    st.markdown("<div style='display:flex;flex-direction:column;gap:0'>" + "".join(bloques) + "</div>",
+                unsafe_allow_html=True)

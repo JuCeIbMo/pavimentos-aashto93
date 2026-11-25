@@ -98,6 +98,12 @@ h1, h2, h3, h4 { font-family: 'Sora', 'Inter', sans-serif; letter-spacing: -0.02
 .step-title { font-weight: 700; color: var(--ink); margin: .2rem 0 .3rem; font-size: 1.05rem; }
 .step-desc { color: var(--muted); font-size: .87rem; line-height: 1.45; }
 
+/* Botones de la barra lateral: texto oscuro legible sobre fondo claro */
+[data-testid="stSidebar"] .stButton button p, [data-testid="stSidebar"] .stDownloadButton button p,
+[data-testid="stSidebar"] [data-testid="stFileUploader"] p, [data-testid="stSidebar"] [data-testid="stFileUploader"] small,
+[data-testid="stSidebar"] [data-testid="stFileUploader"] span { color: #101828 !important; }
+[data-testid="stSidebar"] .stDownloadButton button { background: #E9A800; border-color: #E9A800; }
+
 /* ---------- Tablas ---------- */
 [data-testid="stDataFrame"] { border: 1px solid var(--line); border-radius: .8rem; overflow: hidden; }
 
@@ -107,7 +113,6 @@ h1, h2, h3, h4 { font-family: 'Sora', 'Inter', sans-serif; letter-spacing: -0.02
 
 
 def aplicar_tema() -> None:
-    """Inyecta el CSS global una única vez por sesión."""
-    if not st.session_state.get("_tema_aplicado"):
-        st.markdown(f"<style>{CSS}</style>", unsafe_allow_html=True)
-        st.session_state["_tema_aplicado"] = True
+    """Inyecta el CSS global. Debe llamarse en cada recarga: Streamlit borra los
+    elementos que no se vuelven a dibujar, incluido el <style>."""
+    st.markdown(f"<style>{CSS}</style>", unsafe_allow_html=True)

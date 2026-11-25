@@ -1,171 +1,176 @@
-"""Aplicación Streamlit — Paquete computacional de diseño de pavimentos flexibles (AASHTO '93)."""
+"""Paquete computacional de diseño de pavimentos flexibles — AASHTO 1993 (Streamlit)."""
 
-import json
-from dataclasses import asdict
+import re
 
 import streamlit as st
 
-from pavimentos.proyecto import Proyecto, cargar_proyecto
-from pavimentos.reporte import generar_reporte_html
+from pavimentos.exportar_excel import generar_excel
+from pavimentos.exportar_pdf import generar_pdf
+from pavimentos.formato import entero, num
+from pavimentos.modelo import ProyectoFlexible
+from pavimentos.validacion import listar
 
-from ui import clima, flexibles, subrasante, trafico, validacion
-from ui.componentes import seccion
+from ui import clima, flexibles, referencias, sensibilidad, subrasante, trafico, validacion
+from ui.componentes import encabezado, seccion
+from ui.estado import k, proyecto, reemplazar, resultado
 from ui.theme import aplicar_tema
 
 st.set_page_config(page_title="Pavimentos AASHTO '93", page_icon="🛣️", layout="wide")
 aplicar_tema()
 
-PAGINAS = ["Inicio", "1 · Tránsito", "2 · Subrasante", "4 · Flexibles",
-           "6 · Clima", "Validación", "7 · Marshall"]
-
-_MODULOS = [
-    ("1 · Tránsito", "01", "Cálculo de ejes equivalentes",
-     "TPDA, factor de camión y ESAL acumulados (W18) con crecimiento compuesto."),
-    ("2 · Subrasante", "02", "Módulo resiliente efectivo",
-     "M_R por período y daño relativo ponderado a lo largo del año."),
-    ("4 · Flexibles", "04", "Número estructural y capas",
-     "SN requerido y espesores de carpeta, base y subbase con mínimos."),
-    ("6 · Clima", "06", "Vida útil por clima",
-     "Ajuste del período de desempeño por hinchamiento y helada."),
-]
+PAGINAS = {
+    "Inicio": None,
+    "1 · Tránsito": trafico.render,
+    "2 · Subrasante": subrasante.render,
+    "4 · Diseño flexible": flexibles.render,
+    "6 · Clima": clima.render,
+    "Sensibilidad y escenarios": sensibilidad.render,
+    "Validación": validacion.render,
+    "Referencias": referencias.render,
+}
 
 
-def _resultados() -> dict:
-    """Arma el dict de resultados desde lo que cada página guardó en session_state."""
-    out = {}
-    if st.session_state.get("trafico_resultado"):
-        r = st.session_state["trafico_resultado"]
-        out["Tránsito (ESAL)"] = {
-            "W18": r.get("total_w"),
-            "ESAL primer año": r.get("total_esal1"),
-            "Vehículos pesados (%)": r.get("pesados_pct"),
-            "TPDA total": r.get("tpda_total"),
-        }
-    if st.session_state.get("subrasante_resultado"):
-        r = st.session_state["subrasante_resultado"]
-        out["Subrasante"] = {"M_R efectivo (psi)": r.get("mr_efectivo"),
-                             "Daño relativo promedio": r.get("uf_bar")}
-    if st.session_state.get("flexible_resultado"):
-        r = st.session_state["flexible_resultado"]
-        out["Diseño flexible"] = {
-            "SN requerido": r.get("sn3"),
-            "Carpeta (cm)": r.get("d1_cm"),
-            "Base (cm)": r.get("d2_cm"),
-            "Subbase (cm)": r.get("d3_cm"),
-            "SN aportado": r.get("sn_total"),
-            "Cumple": "sí" if r.get("cumple") else "no",
-        }
-    if st.session_state.get("clima_resultado"):
-        r = st.session_state["clima_resultado"]
-        out["Clima"] = {"Período de desempeño (años)": r.get("periodo"),
-                        "ΔPSI ambiental": r.get("dpsi_sw"),
-                        "ΔPSI remanente": r.get("dpsi_tr"),
-                        "W admisible": r.get("w_adm")}
-    return out
+def _archivo(nombre: str) -> str:
+    base = re.sub(r"[^\w\- ]", "", nombre).strip().replace(" ", "_") or "proyecto"
+    return base[:60]
 
 
-def _sidebar():
+def _estado_modulos(res: dict) -> list[tuple[str, str, bool, str]]:
+    tr, sub, di, ca, cl = (res.get(x) for x in ("transito", "subrasante", "diseno", "capas", "clima"))
+    p = proyecto()
+    return [
+        ("1 · Tránsito", "Ejes equivalentes", bool(tr),
+         f"W18 = {entero(tr['w18'])}" if tr else "Falta la composición vehicular"),
+        ("2 · Subrasante", "M_R efectivo", bool(sub),
+         f"M_R = {entero(sub['mr_efectivo'])} psi" if sub else "Faltan los períodos"),
+        ("4 · Diseño flexible", "SN y espesores", bool(ca),
+         (f"{num(ca['capas'][0]['d'], 1)} / {num(ca['capas'][1]['d'], 1)} / {num(ca['capas'][2]['d'], 1)} {ca['unidad']}"
+          if ca else "Completá los datos")),
+        ("6 · Clima", "Vida útil por clima", bool(cl) or not p.clima.activo,
+         f"{num(cl['periodo'], 1)} años" if cl else ("No considerado" if not p.clima.activo else "Revisar")),
+    ]
+
+
+def _sidebar(res: dict) -> str:
     st.sidebar.markdown(
-        """<div class="brand">
-             <div class="brand-mark">🛣️</div>
+        """<div class="brand"><div class="brand-mark">🛣️</div>
              <div><div class="brand-name">PAVIMENTOS</div>
-             <div class="brand-sub">AASHTO '93 · Flexibles</div></div>
-           </div>""",
-        unsafe_allow_html=True,
-    )
-    pagina = st.sidebar.radio("Módulo", PAGINAS, key="pagina_actual")
+             <div class="brand-sub">AASHTO '93 · Flexibles</div></div></div>""",
+        unsafe_allow_html=True)
+    if "pagina_actual" not in st.session_state:
+        st.session_state["pagina_actual"] = "Inicio"
+    pagina = st.sidebar.radio("Navegación", list(PAGINAS), key="pagina_actual", label_visibility="collapsed")
 
+    p = proyecto()
     st.sidebar.divider()
-    st.sidebar.subheader("Reporte y exportación")
-    proyecto = st.session_state["proyecto"]
-    resultados = _resultados()
+    estado = "✅ Diseño completo" if res["ok"] else ("⚠️ Hay errores" if any(
+        a["nivel"] == "error" for a in res["avisos"]) else "⏳ Diseño incompleto")
+    st.sidebar.caption(f"**{p.nombre}** · {estado}")
 
-    if resultados:
-        html = generar_reporte_html(proyecto, resultados)
-        st.sidebar.download_button("⬇ Descargar reporte (HTML)", html,
-                                   file_name="reporte_pavimento.html", mime="text/html")
-    else:
-        st.sidebar.caption("Calculá un módulo para generar el reporte.")
+    st.sidebar.subheader("Exportar resolución")
+    if st.sidebar.button("📄 Preparar memoria de cálculo (PDF)", width="stretch", disabled=not res.get("capas")):
+        with st.spinner("Generando PDF…"):
+            st.session_state["pdf_bytes"] = generar_pdf(p, res)
+    if st.session_state.get("pdf_bytes"):
+        st.sidebar.download_button("⬇ Descargar PDF", st.session_state["pdf_bytes"],
+                                   file_name=f"{_archivo(p.nombre)}.pdf", mime="application/pdf", width="stretch")
+    if st.sidebar.button("📊 Preparar libro Excel (fórmulas vivas)", width="stretch", disabled=not res.get("capas")):
+        st.session_state["xlsx_bytes"] = generar_excel(p, res)
+    if st.session_state.get("xlsx_bytes"):
+        st.sidebar.download_button(
+            "⬇ Descargar Excel", st.session_state["xlsx_bytes"], file_name=f"{_archivo(p.nombre)}.xlsx",
+            mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", width="stretch")
+    if not res.get("capas"):
+        st.sidebar.caption("Completá el diseño para exportar.")
 
-    st.sidebar.download_button(
-        "💾 Guardar proyecto (.json)",
-        json.dumps(asdict(proyecto), indent=2, ensure_ascii=False),
-        file_name="proyecto.json", mime="application/json")
-
-    subido = st.sidebar.file_uploader("Cargar proyecto (.json)", type=["json"])
+    st.sidebar.subheader("Proyecto")
+    st.sidebar.download_button("💾 Guardar proyecto (.json)", p.to_json(), file_name=f"{_archivo(p.nombre)}.json",
+                               mime="application/json", width="stretch")
+    subido = st.sidebar.file_uploader("Abrir proyecto (.json)", type=["json"], key=f"up_{st.session_state.get('ver', 0)}")
     if subido is not None:
         try:
-            data = json.loads(subido.read())
-            st.session_state["proyecto"] = Proyecto(**data)
-            st.sidebar.success("Proyecto cargado.")
+            reemplazar(ProyectoFlexible.from_json(subido.read().decode("utf-8")))
+            st.rerun()
         except Exception as e:  # noqa: BLE001
-            st.sidebar.error(f"No se pudo cargar: {e}")
-
+            st.sidebar.error(f"No se pudo abrir: {e}")
     return pagina
 
 
-def _ir_a(pagina: str):
+def _ir(pagina: str):
     st.session_state["pagina_actual"] = pagina
-    st.rerun()
 
 
-def _inicio():
+def _inicio(res: dict):
     st.markdown(
         """<div class="hero">
-             <div class="hero-kicker">Diseño de pavimentos · Método AASHTO 1993</div>
-             <h1>Pavimentos flexibles, de punta a punta.</h1>
-             <p>Tránsito, subrasante, número estructural y clima en un solo flujo de
-             cálculo. Cargá tus datos, validá contra el Práctico 3 y exportá el reporte.</p>
+             <div class="hero-kicker">Diseño de pavimentos flexibles · Método AASHTO 1993</div>
+             <h1>Del tránsito a los espesores, con cada decisión explicada.</h1>
+             <p>Cargá los datos módulo por módulo: los resultados se recalculan solos y alimentan al
+             módulo siguiente. Al final, exportá la memoria de cálculo en PDF o el libro Excel con
+             fórmulas vivas.</p>
              <div class="road-line"></div>
              <div class="hero-chips">
-               <span class="chip">4 módulos de cálculo</span>
-               <span class="chip">Validado · Práctico 3</span>
-               <span class="chip">Reporte imprimible</span>
+               <span class="chip">Módulos 1 · 2 · 4 · 6 conectados</span>
+               <span class="chip">Validado con 4 ejercicios</span>
+               <span class="chip">PDF y Excel</span>
+               <span class="chip">Sensibilidad y escenarios</span>
              </div>
-           </div>""",
-        unsafe_allow_html=True,
-    )
+           </div>""", unsafe_allow_html=True)
 
+    p = proyecto()
+    seccion("Datos del proyecto")
+    c = st.columns([1.4, 1, 1])
+    p.nombre = c[0].text_input("Nombre del proyecto", p.nombre, key=k("p_nom"))
+    p.autor = c[1].text_input("Autor / proyectista", p.autor, key=k("p_aut"))
+    p.ubicacion = c[2].text_input("Ubicación", p.ubicacion, key=k("p_ubi"))
+    p.descripcion = st.text_area("Descripción", p.descripcion, key=k("p_desc"), height=70)
+
+    seccion("Flujo de cálculo", "Cada módulo toma los resultados del anterior. Hacé clic para abrirlo.")
     cols = st.columns(4)
-    for i, (pagina, num, titulo, desc) in enumerate(_MODULOS):
-        with cols[i]:
-            st.markdown(
-                f"""<div class="step-num">PASO {num}</div>
-                    <div class="step-title">{titulo}</div>
-                    <div class="step-desc">{desc}</div>""",
-                unsafe_allow_html=True,
-            )
-            st.button("Abrir módulo", key=f"abrir_{i}", use_container_width=True,
-                      on_click=_ir_a, args=(pagina,))
+    for col, (pag, titulo, ok, detalle) in zip(cols, _estado_modulos(res)):
+        with col, st.container(border=True):
+            st.markdown(f"<div class='step-num'>{pag.split(' · ')[0].zfill(2)} · {'✅' if ok else '⏳'}</div>"
+                        f"<div class='step-title'>{titulo}</div><div class='step-desc'>{detalle}</div>",
+                        unsafe_allow_html=True)
+            st.button("Abrir", key=f"ir_{pag}", on_click=_ir, args=(pag,), width="stretch")
 
-    st.markdown("<div style='height:1.2rem'></div>", unsafe_allow_html=True)
-    seccion("Flujo de trabajo",
-            "Los resultados de cada módulo alimentan al siguiente. Arrancá por Tránsito o cargá "
-            "el preset del Práctico 3 para ver todo resuelto.")
+    seccion("Empezar desde un ejemplo", "Cargá un ejercicio validado y recorrelo módulo por módulo.")
+    ejemplos = listar()
+    cols = st.columns(len(ejemplos) + 1)
+    for col, e in zip(cols, ejemplos):
+        with col, st.container(border=True):
+            st.markdown(f"**{e['fuente']['titulo']}**")
+            st.caption(e["fuente"]["tipo"])
+            if st.button("Cargar", key=f"ej_{e['id']}", width="stretch"):
+                reemplazar(ProyectoFlexible.from_dict(e["proyecto"]))
+                st.rerun()
+    with cols[-1], st.container(border=True):
+        st.markdown("**Proyecto en blanco**")
+        st.caption("Empezar de cero")
+        if st.button("Nuevo", key="nuevo", width="stretch"):
+            reemplazar(ProyectoFlexible())
+            st.rerun()
 
 
 def main():
-    st.session_state.setdefault("proyecto", Proyecto())
-    pagina = _sidebar()
-
+    p = proyecto()  # noqa: F841 (inicializa el estado)
+    res_previo = resultado()
+    pagina = _sidebar(res_previo)
     if pagina == "Inicio":
-        _inicio()
-    elif pagina == "1 · Tránsito":
-        trafico.render()
-    elif pagina == "2 · Subrasante":
-        subrasante.render()
-    elif pagina == "4 · Flexibles":
-        flexibles.render()
-    elif pagina == "6 · Clima":
-        clima.render()
-    elif pagina == "Validación":
-        validacion.render()
-    elif pagina == "7 · Marshall":
-        st.markdown('<div class="page-head"><div class="page-badge">07</div>'
-                    '<div><h1 class="page-title">Diseño de mezclas Marshall</h1>'
-                    '<p class="page-sub">Módulo reservado.</p></div></div>',
-                    unsafe_allow_html=True)
-        st.info("Espacio reservado. Se implementará más adelante.")
+        _inicio(res_previo)
+    else:
+        # cada página escribe en el proyecto; se resuelve de nuevo con los datos recién editados
+        PAGINAS[pagina](res_previo)
+        nuevo = resultado()
+        if nuevo != res_previo and _cambio_relevante(res_previo, nuevo):
+            st.session_state.pop("pdf_bytes", None)
+            st.session_state.pop("xlsx_bytes", None)
+            st.rerun()
+
+
+def _cambio_relevante(a: dict, b: dict) -> bool:
+    from pavimentos.resolver import limpiar
+    return repr(limpiar(a)) != repr(limpiar(b))
 
 
 if __name__ == "__main__":

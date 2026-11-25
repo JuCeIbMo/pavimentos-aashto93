@@ -5,11 +5,16 @@ AASHTO 1993, con interfaz Streamlit.
 
 ## Módulos
 
-- **1 · Tránsito** — ejes equivalentes (ESAL / W18), factor de camión, crecimiento.
-- **2 · Subrasante** — módulo resiliente efectivo y daño relativo.
-- **4 · Flexibles** — número estructural (SN) y espesores de carpeta, base y subbase.
-- **6 · Clima** — ajuste de vida útil por hinchamiento y helada.
-- **7 · Marshall** — reservado (pendiente de implementar).
+- **1 · Tránsito**: ejes equivalentes (ESAL / W18). Por ejes con LEF tabulados o con factor de camión conocido.
+- **2 · Subrasante**: M_R efectivo por daño relativo (meses, quincenas o estaciones; desde CBR o M_R directo).
+- **4 · Diseño flexible**: SN requerido, coeficientes de capa, drenaje, espesores con mínimos AASHTO y verificaciones.
+- **6 · Clima**: período de desempeño por hinchamiento y helada (iterativo, AASHTO 93, Apéndice G).
+- **Sensibilidad y escenarios**: curva de una variable, diagrama tornado y comparación de hasta 3 alternativas.
+- **Validación**: 4 ejercicios (práctico 3, examen 1, Apéndice H de la guía y Anexo V de Cabezas, 2006), 45/45 valores.
+- **Exportación**: memoria de cálculo en PDF (Typst) y libro Excel con fórmulas vivas (el SN se resuelve
+  por bisección en celdas). El proyecto se guarda y abre como `.json`.
+
+Los módulos están conectados: el diseño toma el W18 del módulo 1 y el M_R del módulo 2 (o un dato, si se elige).
 
 ## Instalación
 
@@ -23,7 +28,7 @@ uv pip install -e ".[dev]"
 ## Uso
 
 ```bash
-uv run streamlit run app/app.py
+./run.sh            # o: uv run streamlit run app/app.py
 ```
 
 ## Tests
@@ -32,18 +37,18 @@ uv run streamlit run app/app.py
 uv run pytest
 ```
 
-La suite fija los valores del **práctico 3** (M_R efectivo = 10.222 psi,
-W15 = 890.521 ESAL, SN = 3.1, espesores 13 / 15 / 10 cm, período con
-hinchamiento = 14,8 años) como casos de validación.
+La suite resuelve los 4 ejercicios de `data/validacion/` y compara cada valor con su fuente;
+también prueba la exportación PDF/Excel y que cada página de la interfaz cargue sin errores.
 
 ## Estructura
 
-- `pavimentos/` — motor de cálculo puro (solo stdlib, sin Streamlit).
-- `app/` — interfaz Streamlit.
-- `data/lef.json` — tablas LEF D.1–D.9 reconstruidas desde `lefs.pdf`.
-- `data/validacion/practico3.json` — composición vehicular del práctico 3.
-- `scripts/parse_lef_docling.py` — regenera `data/lef.json` una sola vez.
-- `tests/` — suite de validación.
+- `pavimentos/`: motor de cálculo (sin Streamlit).
+  - `modelo.py`: datos del proyecto · `resolver.py`: cadena 1→2→4→6 con decisiones y avisos.
+  - `sensibilidad.py`, `validacion.py`, `referencias.py`.
+  - `exportar_pdf.py` + `plantillas/memoria.typ`, `exportar_excel.py`.
+- `app/`: interfaz Streamlit (`app.py` y `ui/`).
+- `data/lef.json`: tablas LEF D.1–D.9 · `data/validacion/NN_*.json`: ejercicios de validación.
+- `tests/`: validación, resolver, exportaciones y prueba de humo de la interfaz.
 
 ## Notas
 

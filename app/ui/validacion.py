@@ -1,80 +1,85 @@
-"""Página de validación: reproduce el práctico 3 y compara con los valores esperados."""
+"""Validación del paquete contra ejercicios resueltos de la cátedra y de la bibliografía."""
 
-import math
-
+import pandas as pd
 import streamlit as st
 
-from pavimentos.ambiental import periodo_desempeno
-from pavimentos.flexible import disenar_capas, r_etapa, sn_requerido, zr_de_r
-from pavimentos.lef import cargar_lef
-from pavimentos.resiliente import mr_efectivo
-from pavimentos.trafico import esal_total, w_t
+from pavimentos.exportar_pdf import generar_pdf
+from pavimentos.formato import auto, num
+from pavimentos.validacion import validar_todo
 
-from .componentes import cargar_practico3, encabezado, tabla
+from .componentes import concepto, encabezado, fila_metricas
+from .estado import reemplazar
 
-ESPERADOS = {
-    "M_R efectivo (psi)": 10222.0,
-    "W15 (ESAL)": 890521.0,
-    "SN (adoptado)": 3.1,
-    "Período desempeño (años)": 14.8,
-    "Espesores (cm)": "13 / 15 / 10",
-}
+CONCEPTO = """
+Un programa de diseño solo es confiable si reproduce resultados conocidos. Cada ejercicio de
+esta página está guardado como un **proyecto completo**: el programa lo resuelve desde cero y
+compara cada valor intermedio y final con el de la fuente.
+
+- **Diferencia %**: (app − fuente) / fuente. Diferencias pequeñas son esperables cuando la fuente
+  redondea (por ejemplo, Z<sub>R</sub> = −1,405 en lugar de −1,418) o lee un nomograma.
+- **Informativo**: comparaciones que se muestran pero no cuentan como falla, porque la diferencia
+  viene de un error de la propia fuente (el programa lo detecta y lo explica).
+
+Podés **cargar cualquier ejercicio** en la app para recorrerlo módulo por módulo o exportar su PDF.
+"""
 
 
-def render():
-    encabezado("Validación · Práctico 3",
-               "Reproduce el Práctico 3 y compara contra los valores de referencia.",
-               badge="✓")
+@st.cache_data(show_spinner=False)
+def _validar():
+    out = []
+    for v in validar_todo():
+        out.append({**v, "proyecto_json": v["proyecto"].to_json(), "proyecto": None, "resultado": None})
+    return out
 
-    if not st.button("Ejecutar validación del práctico 3", type="primary"):
-        st.info("Corré la validación para comparar el paquete contra el práctico 3.")
-        return
 
-    tablas = cargar_lef()
-    preset = cargar_practico3()
-    periodos = [
-        {"nombre": "Ene-Mar", "meses": 3, "mr": 7050},
-        {"nombre": "Abr", "meses": 1, "mr": 10050},
-        {"nombre": "May/Nov/Dic", "meses": 3, "mr": 11965},
-        {"nombre": "Jun-Oct", "meses": 5, "mr": 15972},
-    ]
+def render(res: dict):
+    encabezado("Validación del paquete",
+               "Cuatro ejercicios resueltos de fuentes independientes, comparados valor por valor.", badge="✓")
+    concepto("¿Cómo se valida el programa?", CONCEPTO)
 
-    mr = mr_efectivo(periodos)["mr_efectivo"]
-    w15 = esal_total(preset["vehiculos"], 15, 0.5, 1.0, tablas, 2.0, 3)["total_w"]
-    zr = zr_de_r(r_etapa(85.0, 2))
-    sn_exacto = sn_requerido(w15, zr, 0.49, 2.2, mr)
-    sn = math.ceil(sn_exacto * 10) / 10
-    w_t_fn = lambda t: w_t(preset["vehiculos"], t, 0.5, 1.0, tablas, 2.0, 3)
-    amb = periodo_desempeno(sn, mr, 2.2, zr, 0.49, 2.0, 60.0, 0.1, 15, w_t_fn)
-    cap = disenar_capas(amb["w_adm"], zr, 0.49, amb["dpsi_tr"], mr,
-                        28143, 16199, 0.428, 0.131, 0.117, 1.0, 1.0, 7.5, 15.0, 10.0)
+    resultados = _validar()
+    total_ok = sum(v["n_ok"] for v in resultados)
+    total = sum(v["n_total"] for v in resultados)
+    fila_metricas([
+        {"etiqueta": "Ejercicios aprobados", "valor": f"{sum(v['aprobado'] for v in resultados)} / {len(resultados)}",
+         "sub": "cátedra + bibliografía"},
+        {"etiqueta": "Comparaciones dentro de tolerancia", "valor": f"{total_ok} / {total}", "sub": "valores intermedios y finales"},
+        {"etiqueta": "Mayor diferencia", "valor": num(max(abs(f["dif_rel"]) * 100 for v in resultados for f in v["filas"]
+                                                          if f.get("tipo") != "informativo" and f["dif_rel"] is not None), 2) + " %",
+         "sub": "entre valores comparados"},
+    ])
 
-    obtenidos = {
-        "M_R efectivo (psi)": round(mr, 0),
-        "W15 (ESAL)": round(w15, 0),
-        "SN (adoptado)": sn,
-        "Período desempeño (años)": round(amb["periodo"], 2),
-        "Espesores (cm)": f"{cap['d1_cm']:.0f} / {cap['d2_cm']:.0f} / {cap['d3_cm']:.0f}",
-    }
-
-    filas = []
-    for clave, esperado in ESPERADOS.items():
-        ok = False
-        if clave == "SN (adoptado)":
-            ok = abs(obtenidos[clave] - esperado) < 0.02
-        elif clave == "Período desempeño (años)":
-            ok = abs(obtenidos[clave] - esperado) < 0.1
-        elif clave == "M_R efectivo (psi)":
-            ok = abs(obtenidos[clave] - esperado) / esperado < 0.005
-        elif clave == "W15 (ESAL)":
-            ok = abs(obtenidos[clave] - esperado) / esperado < 0.005
-        else:
-            ok = str(obtenidos[clave]) == str(esperado)
-        filas.append({"Resultado": clave, "Esperado": str(esperado), "Obtenido": str(obtenidos[clave]),
-                      "Estado": "✅" if ok else "❌"})
-
-    tabla(filas, ["Resultado", "Esperado", "Obtenido", "Estado"])
-    if all(f["Estado"] == "✅" for f in filas):
-        st.success("El paquete reproduce el práctico 3 dentro de tolerancia.")
-    else:
-        st.error("Hay discrepancias con el práctico 3.")
+    from pavimentos.modelo import ProyectoFlexible
+    for v in resultados:
+        f = v["fuente"]
+        icono = "✅" if v["aprobado"] else "❌"
+        with st.expander(f"{icono} **{f['titulo']}** · {f['tipo']} · {v['n_ok']}/{v['n_total']} valores", expanded=False):
+            st.caption(f"📖 {f['referencia']}")
+            proyecto = ProyectoFlexible.from_json(v["proyecto_json"])
+            if proyecto.descripcion:
+                st.markdown(proyecto.descripcion)
+            df = pd.DataFrame([{
+                "": ("✅" if x["cumple"] else ("ℹ️" if x.get("tipo") == "informativo" else "❌")),
+                "Valor": x["etiqueta"], "Unidad": x.get("unidad", ""),
+                "Fuente": auto(x["valor"]), "App": auto(x["app"]),
+                "Diferencia": "—" if x["dif_rel"] is None else f"{num(x['dif_rel'] * 100, 2)} %",
+                "Tolerancia": f"± {num(x['tol_rel'] * 100, 1)} %", "Nota": x.get("nota", ""),
+            } for x in v["filas"]])
+            st.dataframe(df, hide_index=True, width="stretch",
+                         column_config={"Nota": st.column_config.TextColumn(width="large")})
+            notas = [x for x in v["filas"] if x.get("tipo") == "informativo" and not x["cumple"]]
+            if notas:
+                st.warning("**Discrepancias atribuibles a la fuente** (no cuentan como falla):\n\n" +
+                           "\n".join(f"- {x['etiqueta']}: {x['nota'] or 'diferencia por redondeos de la fuente.'}"
+                                     for x in notas))
+            c1, c2 = st.columns(2)
+            if c1.button("Cargar este ejercicio en la app", key=f"cargar_{v['id']}", width="stretch"):
+                reemplazar(proyecto)
+                st.session_state["pagina_actual"] = "Inicio"
+                st.rerun()
+            if c2.button("Preparar PDF de este ejercicio", key=f"pdf_{v['id']}", width="stretch"):
+                st.session_state[f"pdf_val_{v['id']}"] = generar_pdf(proyecto)
+            if st.session_state.get(f"pdf_val_{v['id']}"):
+                c2.download_button("⬇ Descargar PDF", st.session_state[f"pdf_val_{v['id']}"],
+                                   file_name=f"validacion_{v['id']}.pdf", mime="application/pdf",
+                                   key=f"dl_{v['id']}", width="stretch")

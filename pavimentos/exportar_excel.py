@@ -99,13 +99,13 @@ def generar_excel(p: ProyectoFlexible, res: dict | None = None) -> bytes:
         ws = wb.active
         ws.title = "Transito"
         h = _Hoja(ws, "Módulo 1 · Tránsito (ESAL / W18)",
-                  "Celdas amarillas = datos editables. G = ((1+r)^n − 1)/r ; ESAL₁ = TPDA·FC·365·Fd·Fc ; W = ESAL₁·G")
+                  "Celdas amarillas = datos editables. G = ((1+r)^n − 1)/r ; ESAL₁ = TPDA·Fcam·365·Fd·Fc ; W = ESAL₁·G")
         h.anchos(30, 14, 12, 12, 12, 16, 18)
         n = h.par("Período de diseño n (años)", tr["n"], "0", dato=True)
         fd = h.par("Distribución direccional Fd", tr["fd"], N2, dato=True)
         fc = h.par("Distribución por carril Fc", tr["fc"], N2, dato=True)
         h.fila += 1
-        h.encabezado(["Vehículo", "TPDA", "r", "FC (Σ LEF)", "G", "ESAL año 1", "W (n años)"])
+        h.encabezado(["Vehículo", "TPDA", "r", "Factor camión (Σ LEF)", "G", "ESAL año 1", "W (n años)"])
         f0 = h.fila
         for f in tr["filas"]:
             i = h.fila
@@ -127,18 +127,18 @@ def generar_excel(p: ProyectoFlexible, res: dict | None = None) -> bytes:
         c.number_format, c.fill, c.font = N0, R_RES, F_NEG
         refs["w18"] = f"Transito!$G${h.fila}"
         h.fila += 2
-        ws.cell(h.fila, 1, "El FC de cada vehículo es la suma de los LEF de sus ejes (hoja «LEF», tablas "
+        ws.cell(h.fila, 1, "El factor camión de cada vehículo es la suma de los LEF de sus ejes (hoja «LEF», tablas "
                            "AASHTO D.1–D.9) o un dato de pesaje.").font = F_SUB
 
         if any(f["ejes"] for f in tr["filas"]):
             wl = wb.create_sheet("LEF")
             hl = _Hoja(wl, "Factores de equivalencia de carga por eje",
-                       f"AASHTO 93, Apéndice D · pt = {tr['pt_lef']:g} · SN supuesto = {tr['sn_lef']:g} · interpolación bilineal")
+                       f"AASHTO 93, Apéndice D · pt = {tr['pt_lef']:g} · SN = {tr['sn_lef']:g} · interpolación bilineal")
             hl.anchos(30, 12, 12, 12, 12)
             en_t = tr["unidad_carga"] == "t"
             hl.encabezado(["Vehículo", "Tipo de eje", f"Carga ({tr['unidad_carga']})", "Carga usada (kip)", "LEF"])
             if en_t:
-                wl.cell(2, 7, "kip por tonelada")
+                wl.cell(2, 7, "kip por tonelada (exacto)")
                 wl.cell(2, 8, tr["kip_por_t"]).fill = R_DATO
             for f in tr["filas"]:
                 for e in f["ejes"]:

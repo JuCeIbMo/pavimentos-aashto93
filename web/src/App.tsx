@@ -117,7 +117,7 @@ function BarraSuperior() {
             {resolviendo ? <><Loader2 className="h-3 w-3 animate-spin" /> Calculando…</>
               : error ? <><TriangleAlert className="h-3 w-3 text-red-500" /> Sin conexión con el motor de cálculo</>
                 : errores ? <><TriangleAlert className="h-3 w-3 text-red-500" /> {errores} error{errores > 1 ? 'es' : ''} en los datos</>
-                  : completo ? <><CheckCircle2 className="h-3 w-3 text-emerald-500" /> Diseño completo · W18 = {entero(resultado!.diseno!.w18)} · SN = {num(resultado!.diseno!.sn_requerido, 2)}</>
+                  : completo ? <><CheckCircle2 className="h-3 w-3 text-emerald-500" /> Diseño completo · W18 = {entero(resultado!.diseno!.w18)} · SN = {num(resultado!.diseno!.sn_requerido, 2)} · el PDF y el Excel salen con estos datos</>
                     : <><CircleDashed className="h-3 w-3" /> Diseño incompleto</>}
           </div>
         </div>

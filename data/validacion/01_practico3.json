@@ -8,15 +8,14 @@
     "nombre": "Práctico 3 — Carreteras II",
     "autor": "",
     "ubicacion": "",
-    "descripcion": "Práctico 3 de la cátedra: tránsito por ejes, M_R estacional, construcción por etapas e hinchamiento.",
+    "descripcion": "Práctico 3 de la cátedra: tránsito por ejes, M_R estacional, construcción por etapas e hinchamiento. Las cargas en toneladas de la fuente se pasaron a kip con ×2, como en la resolución de clase.",
     "transito": {
       "n": 15,
       "fd": 0.5,
       "fc": 1.0,
       "pt": 2.0,
       "sn_lef": 3.0,
-      "unidad_carga": "t",
-      "kip_por_t": 2.0,
+      "unidad_carga": "kip",
       "vehiculos": [
         {
           "nombre": "Automóvil",
@@ -26,11 +25,11 @@
           "ejes": [
             [
               "simple",
-              1
+              2.0
             ],
             [
               "simple",
-              1
+              2.0
             ]
           ],
           "factor_camion": null
@@ -43,11 +42,11 @@
           "ejes": [
             [
               "simple",
-              1
+              2.0
             ],
             [
               "simple",
-              2
+              4.0
             ]
           ],
           "factor_camion": null
@@ -60,11 +59,11 @@
           "ejes": [
             [
               "simple",
-              1
+              2.0
             ],
             [
               "simple",
-              2
+              4.0
             ]
           ],
           "factor_camion": null
@@ -77,11 +76,11 @@
           "ejes": [
             [
               "simple",
-              1
+              2.0
             ],
             [
               "simple",
-              4
+              8.0
             ]
           ],
           "factor_camion": null
@@ -94,11 +93,11 @@
           "ejes": [
             [
               "simple",
-              2
+              4.0
             ],
             [
               "simple",
-              11
+              22.0
             ]
           ],
           "factor_camion": null
@@ -111,11 +110,11 @@
           "ejes": [
             [
               "simple",
-              7
+              14.0
             ],
             [
               "tandem",
-              18
+              36.0
             ]
           ],
           "factor_camion": null
@@ -128,11 +127,11 @@
           "ejes": [
             [
               "simple",
-              7
+              14.0
             ],
             [
               "simple",
-              11
+              22.0
             ]
           ],
           "factor_camion": null
@@ -145,11 +144,11 @@
           "ejes": [
             [
               "simple",
-              7
+              14.0
             ],
             [
               "tridem",
-              25
+              50.0
             ]
           ],
           "factor_camion": null
@@ -162,15 +161,15 @@
           "ejes": [
             [
               "simple",
-              7
+              14.0
             ],
             [
               "simple",
-              7
+              14.0
             ],
             [
               "tandem",
-              18
+              36.0
             ]
           ],
           "factor_camion": null
@@ -183,15 +182,15 @@
           "ejes": [
             [
               "simple",
-              7
+              14.0
             ],
             [
               "tridem",
-              25
+              50.0
             ],
             [
               "tandem",
-              18
+              36.0
             ]
           ],
           "factor_camion": null
@@ -204,19 +203,19 @@
           "ejes": [
             [
               "simple",
-              7
+              14.0
             ],
             [
               "simple",
-              11
+              22.0
             ],
             [
               "tridem",
-              25
+              50.0
             ],
             [
               "tandem",
-              18
+              36.0
             ]
           ],
           "factor_camion": null
@@ -229,11 +228,11 @@
           "ejes": [
             [
               "simple",
-              1
+              2.0
             ],
             [
               "simple",
-              4
+              8.0
             ]
           ],
           "factor_camion": null

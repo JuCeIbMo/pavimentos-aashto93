@@ -16,10 +16,10 @@ export interface Transito {
   n: number
   fd: number
   fc: number
+  carriles: number
   pt: number
   sn_lef: number
   unidad_carga: 't' | 'kip'
-  kip_por_t: number
   vehiculos: Vehiculo[]
 }
 
@@ -101,6 +101,7 @@ export interface FilaTransito {
   factor_camion: number
   origen_fc: 'ejes' | 'dato'
   ejes: EjeRes[]
+  faltan: string[]
   g: number
   esal1: number
   w: number
@@ -119,6 +120,7 @@ export interface ResTransito {
   sn_lef: number
   unidad_carga: 't' | 'kip'
   kip_por_t: number
+  carriles: number
 }
 
 export interface ResSubrasante {
@@ -202,7 +204,7 @@ export type Modulo = 'transito' | 'subrasante' | 'diseno' | 'clima'
 export interface Aviso {
   modulo: Modulo
   texto: string
-  nivel: 'error' | 'warn'
+  nivel: 'error' | 'warn' | 'info'
 }
 
 export interface Resultado {
@@ -213,6 +215,7 @@ export interface Resultado {
   clima: ResClima | null
   capas: ResCapas | null
   avisos: Aviso[]
+  sn_sugerido?: number
   decisiones: { modulo: Modulo; texto: string }[]
   ok: boolean
 }

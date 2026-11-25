@@ -17,7 +17,7 @@ from pavimentos.formato import g, num
 from pavimentos.flexible import coef_a1, coef_a2, coef_a3, log_w18, r_etapa, sn_requerido, zr_de_r
 from pavimentos.lef import DatosInvalidos as ErrorLEF
 from pavimentos.lef import cargar_lef, lef_eje
-from pavimentos.modelo import ProyectoFlexible
+from pavimentos.modelo import FC_AASHTO, FD_AASHTO, KIP_POR_T, ProyectoFlexible
 from pavimentos.resiliente import DatosInvalidos as ErrorMR
 from pavimentos.resiliente import danio_relativo, mr_de_cbr
 from pavimentos.trafico import factor_crecimiento
@@ -85,62 +85,71 @@ class _Registro:
 def _resolver_transito(p: ProyectoFlexible, reg: _Registro) -> dict | None:
     tr = p.transito
     if not tr.vehiculos:
+        reg.aviso("transito", "Todavía no hay vehículos cargados.", "error")
         return None
     if not (0 < tr.fd <= 1) or not (0 < tr.fc <= 1):
         reg.aviso("transito", "Fd y Fc deben estar entre 0 y 1.", "error")
         return None
-    if tr.fd not in (0.5, 1.0) and not (0.3 <= tr.fd <= 0.7):
-        reg.aviso("transito", f"Fd = {g(tr.fd)} es inusual: AASHTO recomienda 0,3–0,7 (normalmente 0,5).")
+    if tr.fd != 1.0 and not (FD_AASHTO[0] <= tr.fd <= FD_AASHTO[1]):
+        reg.aviso("transito", f"Fd = {g(tr.fd)} fuera del rango AASHTO {g(FD_AASHTO[0])}–{g(FD_AASHTO[1])} "
+                              "(normalmente 0,5).")
+    fc_min, fc_max = FC_AASHTO.get(min(max(int(tr.carriles), 1), 4))
+    if not (fc_min - 1e-9 <= tr.fc <= fc_max + 1e-9):
+        rango = g(fc_min) if fc_min == fc_max else f"{g(fc_min)}–{g(fc_max)}"
+        reg.aviso("transito", f"Fc = {g(tr.fc)} fuera del rango AASHTO para {tr.carriles}"
+                              f"{' o más' if tr.carriles >= 4 else ''} carril(es) por sentido ({rango}).")
     if tr.unidad_carga not in ("t", "kip"):
         reg.aviso("transito", f"Unidad de carga desconocida: {tr.unidad_carga}.", "error")
         return None
-    if tr.unidad_carga == "t" and not tr.kip_por_t > 0:
-        reg.aviso("transito", "La conversión t → kip debe ser positiva.", "error")
-        return None
     tablas = tablas_lef()
     filas = []
-    for v in tr.vehiculos:
+    for k, v in enumerate(tr.vehiculos, start=1):
         detalle = []
+        faltan: list[str] = []
+        quien = f"Fila {k} ({v.nombre})"
         if v.factor_camion is not None:
             fcam = float(v.factor_camion)
             origen = "dato"
         else:
             fcam = 0.0
             origen = "ejes"
-            for tipo, carga in v.ejes:
+            if not v.ejes:
+                faltan.append("ejes o factor camión")
+                reg.aviso("transito", f"{quien}: no tiene ejes ni factor de camión.", "error")
+            for j, (tipo, carga) in enumerate(v.ejes, start=1):
                 carga = float(carga)
-                kip = carga if tr.unidad_carga == "kip" else carga * tr.kip_por_t
+                kip = carga if tr.unidad_carga == "kip" else carga * KIP_POR_T
                 if carga <= 0:
-                    reg.aviso("transito", f"{v.nombre}: falta la carga de un eje {({'tandem': 'tándem', 'tridem': 'trídem'}).get(tipo, tipo)}.", "error")
+                    faltan.append(f"carga del eje {j}")
+                    reg.aviso("transito", f"{quien}: falta la carga del eje {j} "
+                              f"({({'tandem': 'tándem', 'tridem': 'trídem'}).get(tipo, tipo)}).", "error")
                     lef = 0.0
                 else:
                     try:
                         lef = lef_eje(tablas, tipo, tr.pt, kip, tr.sn_lef)
                     except ErrorLEF as e:
-                        reg.aviso("transito", f"{v.nombre}: {e}", "error")
+                        faltan.append(f"carga del eje {j}")
+                        reg.aviso("transito", f"{quien}: {e}", "error")
                         lef = 0.0
                 detalle.append({"tipo": tipo, "carga": carga, "unidad": tr.unidad_carga,
                                "carga_kip": kip, "lef": lef})
                 fcam += lef
+        if v.tpda <= 0:
+            faltan.append("TPDA")
+            reg.aviso("transito", f"{quien}: TPDA = 0, este vehículo no suma al W18.")
         gc = factor_crecimiento(v.r, tr.n)
         esal1 = v.tpda * fcam * 365.0 * tr.fd * tr.fc
         filas.append({
             "nombre": v.nombre, "tpda": v.tpda, "r": v.r, "pesado": v.pesado,
-            "factor_camion": fcam, "origen_fc": origen, "ejes": detalle,
+            "factor_camion": fcam, "origen_fc": origen, "ejes": detalle, "faltan": faltan,
             "g": gc, "esal1": esal1, "w": esal1 * gc,
             "w_bruto": v.tpda * fcam * 365.0 * gc,  # ambos sentidos, todos los carriles
         })
     if any(f["ejes"] for f in filas):
-        if tr.unidad_carga == "kip":
-            reg.decision("transito", f"Cargas por eje en kip; LEF leídos de las tablas AASHTO (pt = {g(tr.pt)}, "
-                                     f"SN supuesto = {g(tr.sn_lef)}) con interpolación.")
-        else:
-            exacta = abs(tr.kip_por_t - 2.20462) < 1e-3
-            modo = "exacta" if exacta else ("simplificada de cátedra" if tr.kip_por_t == 2 else "personalizada")
-            fac = num(tr.kip_por_t, 4) if exacta else g(tr.kip_por_t)
-            reg.decision("transito", f"Cargas por eje en toneladas, convertidas a kip con 1 t = {fac} kip "
-                                     f"(conversión {modo}); LEF leídos de las tablas AASHTO (pt = {g(tr.pt)}, "
-                                     f"SN supuesto = {g(tr.sn_lef)}) con interpolación.")
+        conv = ("Cargas por eje en kip" if tr.unidad_carga == "kip"
+                else f"Cargas por eje en toneladas, convertidas a kip con 1 t = {num(KIP_POR_T, 4)} kip")
+        reg.decision("transito", f"{conv}; LEF leídos de las tablas AASHTO (pt = {g(tr.pt)}, "
+                                 f"SN supuesto = {g(tr.sn_lef)}) con interpolación en la carga.")
     tpda = sum(f["tpda"] for f in filas)
     tpda_p = sum(f["tpda"] for f in filas if f["pesado"])
     total_w = sum(f["w"] for f in filas)
@@ -160,7 +169,7 @@ def _resolver_transito(p: ProyectoFlexible, reg: _Registro) -> dict | None:
         "esal1_total": sum(f["esal1"] for f in filas),
         "w18": total_w, "n": tr.n, "fd": tr.fd, "fc": tr.fc,
         "pt_lef": tr.pt, "sn_lef": tr.sn_lef, "unidad_carga": tr.unidad_carga,
-        "kip_por_t": tr.kip_por_t, "_w_t": w_t,
+        "kip_por_t": KIP_POR_T, "carriles": tr.carriles, "_w_t": w_t,
     }
 
 
@@ -408,9 +417,14 @@ def resolver(p: ProyectoFlexible) -> dict:
     if d.paso_sn > 0:
         reg.decision("diseno", f"SN requerido = {num(sn_req, 3)}; se adopta SN = {num(sn_adop, 2)} "
                      f"(redondeo hacia arriba a {g(d.paso_sn)}).")
-    if usa_ejes and abs(tr["sn_lef"] - sn_adop) > 0.5:
-        reg.aviso("transito", f"Los LEF se calcularon con SN supuesto = {g(tr['sn_lef'])}, pero el SN "
-                  f"resultante es {num(sn_adop, 1)}. Conviene repetir el módulo 1 con un SN más cercano.")
+    if usa_ejes:
+        res["sn_sugerido"] = min(6, max(1, round(sn_adop)))
+        if abs(tr["sn_lef"] - sn_adop) > 0.5:
+            reg.aviso("transito", f"Los LEF se leyeron en la columna SN = {g(tr['sn_lef'])}, pero el diseño dio "
+                      f"SN = {num(sn_adop, 1)}. Repetí con la columna SN = {res['sn_sugerido']}.")
+        else:
+            reg.decision("transito", f"El SN de diseño ({num(sn_adop, 1)}) queda a menos de 0,5 del SN supuesto "
+                         f"({g(tr['sn_lef'])}): no hace falta repetir el cálculo de los LEF.")
 
     mat = _materiales(p, reg)
     if mat is None:

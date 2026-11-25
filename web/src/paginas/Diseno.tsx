@@ -121,7 +121,7 @@ export default function Diseno() {
             opciones={[{ valor: 'cm', etiqueta: 'centímetros' }, { valor: 'pulg', etiqueta: 'pulgadas' }]} />
           <CampoNumero etiqueta={`Redondear espesores a (${d.unidad})`} ayuda="Siempre hacia arriba." valor={d.paso_espesor} min={0.1}
             alCambiar={(v) => editar((p) => { p.diseno.paso_espesor = v ?? 0.5 })} />
-          <CampoNumero etiqueta="Redondear SN a" ayuda="0 = no redondear. La cátedra y la guía adoptan el SN redondeado a 0,1." valor={d.paso_sn}
+          <CampoNumero etiqueta="Redondear SN a" ayuda="0 = no redondear. Lo habitual es adoptar el SN redondeado hacia arriba a 0,1." valor={d.paso_sn}
             alCambiar={(v) => editar((p) => { p.diseno.paso_sn = v ?? 0 })} />
           <CampoSelector etiqueta="Espesores mínimos" valor={d.minimos} alCambiar={(v) => editar((p) => { p.diseno.minimos = v })}
             opciones={[{ valor: 'aashto', etiqueta: 'Tabla AASHTO (según W18)' }, { valor: 'personalizado', etiqueta: 'Personalizados' }, { valor: 'ninguno', etiqueta: 'Sin mínimos' }]} />

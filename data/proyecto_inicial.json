@@ -1,0 +1,309 @@
+{
+  "nombre": "Mi proyecto",
+  "autor": "",
+  "ubicacion": "",
+  "descripcion": "Proyecto de ejemplo para empezar: reemplazá los datos por los de tu enunciado.",
+  "transito": {
+    "n": 15,
+    "fd": 0.5,
+    "fc": 1.0,
+    "pt": 2.0,
+    "sn_lef": 3.0,
+    "unidad_carga": "t",
+    "vehiculos": [
+      {
+        "nombre": "Automóvil",
+        "tpda": 250,
+        "r": 0.03,
+        "pesado": false,
+        "ejes": [
+          [
+            "simple",
+            1
+          ],
+          [
+            "simple",
+            1
+          ]
+        ],
+        "factor_camion": null
+      },
+      {
+        "nombre": "Camioneta",
+        "tpda": 65,
+        "r": 0.03,
+        "pesado": false,
+        "ejes": [
+          [
+            "simple",
+            1
+          ],
+          [
+            "simple",
+            2
+          ]
+        ],
+        "factor_camion": null
+      },
+      {
+        "nombre": "Minibús",
+        "tpda": 315,
+        "r": 0.03,
+        "pesado": false,
+        "ejes": [
+          [
+            "simple",
+            1
+          ],
+          [
+            "simple",
+            2
+          ]
+        ],
+        "factor_camion": null
+      },
+      {
+        "nombre": "Bus 12-21",
+        "tpda": 1,
+        "r": 0.03,
+        "pesado": true,
+        "ejes": [
+          [
+            "simple",
+            1
+          ],
+          [
+            "simple",
+            4
+          ]
+        ],
+        "factor_camion": null
+      },
+      {
+        "nombre": "Bus 21-35",
+        "tpda": 25,
+        "r": 0.05,
+        "pesado": true,
+        "ejes": [
+          [
+            "simple",
+            2
+          ],
+          [
+            "simple",
+            11
+          ]
+        ],
+        "factor_camion": null
+      },
+      {
+        "nombre": "Bus 35+",
+        "tpda": 35,
+        "r": 0.04,
+        "pesado": true,
+        "ejes": [
+          [
+            "simple",
+            7
+          ],
+          [
+            "tandem",
+            18
+          ]
+        ],
+        "factor_camion": null
+      },
+      {
+        "nombre": "Camión mediano",
+        "tpda": 32,
+        "r": 0.02,
+        "pesado": true,
+        "ejes": [
+          [
+            "simple",
+            7
+          ],
+          [
+            "simple",
+            11
+          ]
+        ],
+        "factor_camion": null
+      },
+      {
+        "nombre": "Camión grande 2 ejes",
+        "tpda": 16,
+        "r": 0.02,
+        "pesado": true,
+        "ejes": [
+          [
+            "simple",
+            7
+          ],
+          [
+            "tridem",
+            25
+          ]
+        ],
+        "factor_camion": null
+      },
+      {
+        "nombre": "Camión grande 3 ejes",
+        "tpda": 8,
+        "r": 0.01,
+        "pesado": true,
+        "ejes": [
+          [
+            "simple",
+            7
+          ],
+          [
+            "simple",
+            7
+          ],
+          [
+            "tandem",
+            18
+          ]
+        ],
+        "factor_camion": null
+      },
+      {
+        "nombre": "Semirremolque",
+        "tpda": 2,
+        "r": 0.01,
+        "pesado": true,
+        "ejes": [
+          [
+            "simple",
+            7
+          ],
+          [
+            "tridem",
+            25
+          ],
+          [
+            "tandem",
+            18
+          ]
+        ],
+        "factor_camion": null
+      },
+      {
+        "nombre": "Camión con remolque",
+        "tpda": 1,
+        "r": 0.01,
+        "pesado": true,
+        "ejes": [
+          [
+            "simple",
+            7
+          ],
+          [
+            "simple",
+            11
+          ],
+          [
+            "tridem",
+            25
+          ],
+          [
+            "tandem",
+            18
+          ]
+        ],
+        "factor_camion": null
+      },
+      {
+        "nombre": "Otros",
+        "tpda": 4,
+        "r": 0.03,
+        "pesado": false,
+        "ejes": [
+          [
+            "simple",
+            1
+          ],
+          [
+            "simple",
+            4
+          ]
+        ],
+        "factor_camion": null
+      }
+    ],
+    "carriles": 1
+  },
+  "subrasante": {
+    "periodos": [
+      {
+        "nombre": "Ene–Mar",
+        "meses": 3,
+        "cbr": null,
+        "mr": 7050
+      },
+      {
+        "nombre": "Abril",
+        "meses": 1,
+        "cbr": null,
+        "mr": 10050
+      },
+      {
+        "nombre": "May, Nov, Dic",
+        "meses": 3,
+        "cbr": null,
+        "mr": 11965
+      },
+      {
+        "nombre": "Jun–Oct",
+        "meses": 5,
+        "cbr": null,
+        "mr": 15972
+      }
+    ]
+  },
+  "diseno": {
+    "r_pct": 85,
+    "etapas": 2,
+    "so": 0.49,
+    "p0": 4.2,
+    "pt": 2.0,
+    "fuente_w18": "calculado",
+    "w18_dato": null,
+    "fuente_mr": "calculado",
+    "mr_dato": null,
+    "carpeta": {
+      "e_psi": 425000,
+      "cbr": null,
+      "a": 0.428,
+      "m": 1.0
+    },
+    "base": {
+      "e_psi": 28143,
+      "cbr": null,
+      "a": 0.131,
+      "m": 1.0
+    },
+    "subbase": {
+      "e_psi": 16199,
+      "cbr": null,
+      "a": 0.117,
+      "m": 1.0
+    },
+    "paso_sn": 0.1,
+    "unidad": "cm",
+    "paso_espesor": 0.5,
+    "minimos": "personalizado",
+    "min_carpeta": 7.5,
+    "min_base": 15,
+    "min_subbase": 10
+  },
+  "clima": {
+    "activo": true,
+    "hinchamiento": true,
+    "vr": 2.0,
+    "ps": 60,
+    "theta": 0.1,
+    "helada": null
+  }
+}

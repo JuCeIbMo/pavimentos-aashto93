@@ -58,7 +58,7 @@ def preparar_datos(p: ProyectoFlexible, res: dict, sensibilidad: bool = True) ->
             "hay_dato": any(f["origen_fc"] == "dato" for f in tr["filas"]),
             "unidad_carga": tr["unidad_carga"],
             "conversion": ("" if tr["unidad_carga"] == "kip" else
-                           f"Cargas en toneladas convertidas con 1 t = {num(tr['kip_por_t'], 4 if tr['kip_por_t'] != 2 else 0)} kip."),
+                           f"Cargas en toneladas convertidas con 1 t = {num(tr['kip_por_t'], 4)} kip."),
             "ejes": [[f["nombre"], e["tipo"], num(e["carga"], 2), num(e["carga_kip"], 2), num(e["lef"], 4)]
                      for f in tr["filas"] for e in f["ejes"]],
         }

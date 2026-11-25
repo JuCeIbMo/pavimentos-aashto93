@@ -148,11 +148,11 @@
     ([TPDA total], t.tpda + " veh/día"),
   ))
   [
-    $ G = ((1+r)^n - 1) / r #h(2em) W_18 = sum_i "TPDA"_i dot "FC"_i dot 365 dot F_d dot F_c dot G_i $
+    $ G = ((1+r)^n - 1) / r #h(2em) W_18 = sum_i "TPDA"_i dot F_("cam",i) dot 365 dot F_d dot F_c dot G_i $
   ]
   fuente[AASHTO (1993), Parte II, sec. 2.1.2 y Apéndice D (LEF, tablas D.1–D.9).]
   tabla((2fr, 0.8fr, 0.7fr, 1fr, 0.8fr, 1.1fr, 1.3fr),
-    ("Vehículo", "TPDA", "r", "FC", "G", "ESAL año 1", "W (n años)"), t.filas)
+    ("Vehículo", "TPDA", "r", "F. camión", "G", "ESAL año 1", "W (n años)"), t.filas)
   if t.hay_dato [ #text(size: 8pt)[\* Factor de camión ingresado como dato (estudio de pesaje o fuente).] ]
   [
     #v(4pt)

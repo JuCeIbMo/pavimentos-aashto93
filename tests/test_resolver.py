@@ -108,19 +108,51 @@ def test_espesores_en_pulgadas():
     assert r["capas"]["cumple"]
 
 
+def _inicial():
+    import json
+    from pathlib import Path
+    ruta = Path(__file__).resolve().parent.parent / "data" / "proyecto_inicial.json"
+    return ProyectoFlexible.from_dict(json.loads(ruta.read_text(encoding="utf-8")))
+
+
 def test_cargas_en_kip_equivalen_a_toneladas():
-    from pavimentos.modelo import KIP_POR_T_EXACTO
-    from pavimentos.validacion import listar
-    base = next(ProyectoFlexible.from_dict(e["proyecto"]) for e in listar() if e["id"].startswith("01"))
-    base.transito.kip_por_t = KIP_POR_T_EXACTO
+    from pavimentos.modelo import KIP_POR_T
+    base = _inicial()
     en_kip = base.copia()
     en_kip.transito.unidad_carga = "kip"
     for v in en_kip.transito.vehiculos:
-        v.ejes = [[t, c * KIP_POR_T_EXACTO] for t, c in v.ejes]
+        v.ejes = [[t, c * KIP_POR_T] for t, c in v.ejes]
     a, b = resolver(base)["transito"]["w18"], resolver(en_kip)["transito"]["w18"]
     assert a == pytest.approx(b, rel=1e-9)
-    # la conversión exacta da más tránsito que la de cátedra (×2): las cargas son mayores
-    assert a > 890521
+
+
+def test_aviso_si_el_sn_supuesto_esta_lejos():
+    p = _inicial()
+    r = resolver(p)                                  # supuesto 3, diseño 3,3: no hace falta repetir
+    assert not any("Repetí" in a["texto"] for a in r["avisos"])
+    p.transito.sn_lef = 6.0
+    r = resolver(p)
+    assert r["sn_sugerido"] == 3
+    assert any("Repetí con la columna SN = 3" in a["texto"] for a in r["avisos"])
+
+
+def test_fila_incompleta_se_marca():
+    p = _inicial()
+    p.transito.vehiculos[0].tpda = 0
+    p.transito.vehiculos[1].ejes[1][1] = 0
+    r = resolver(p)
+    filas = r["transito"]["filas"]
+    assert filas[0]["faltan"] == ["TPDA"]
+    assert filas[1]["faltan"] == ["carga del eje 2"]
+    assert filas[2]["faltan"] == []
+
+
+def test_fc_fuera_de_rango_por_carriles():
+    p = _inicial()
+    p.transito.carriles, p.transito.fc = 3, 1.0
+    assert any("Fc = 1" in a["texto"] for a in resolver(p)["avisos"])
+    p.transito.fc = 0.7
+    assert not any(a["texto"].startswith("Fc") for a in resolver(p)["avisos"])
 
 
 def test_eje_sin_carga_es_error():

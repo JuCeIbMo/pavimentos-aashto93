@@ -13,8 +13,9 @@ def inicial():
     return c.get("/api/proyecto/inicial").json()
 
 
-def test_resolver_practico3(inicial):
-    r = c.post("/api/resolver", json={"proyecto": inicial}).json()
+def test_resolver_practico3():
+    ej = next(e for e in c.get("/api/ejemplos").json() if e["id"].startswith("01"))
+    r = c.post("/api/resolver", json={"proyecto": ej["proyecto"]}).json()
     assert r["ok"]
     assert r["transito"]["w18"] == pytest.approx(890521, rel=1e-3)
     assert [x["d"] for x in r["capas"]["capas"]] == [13, 15, 10]
@@ -51,6 +52,6 @@ def test_sensibilidad(inicial):
 
 def test_catalogo_y_referencias():
     cat = c.get("/api/catalogo").json()
-    assert any(o["fuente"] for o in cat["opciones"])
+    assert cat["opciones"] and all(c == 0 for o in cat["opciones"] for _, c in o["ejes"])
     ref = c.get("/api/referencias").json()
     assert "aashto" in ref["ecuaciones"]

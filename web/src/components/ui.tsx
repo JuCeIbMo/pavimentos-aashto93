@@ -253,16 +253,18 @@ export function Concepto({ titulo, children, abierto = false }: { titulo: string
   )
 }
 
-export function Avisos({ modulo }: { modulo: Modulo }) {
+export function Avisos({ modulo, excluir }: { modulo: Modulo; excluir?: (texto: string) => boolean }) {
   const res = useApp((s) => s.resultado)
-  const avisos = (res?.avisos ?? []).filter((a) => a.modulo === modulo)
+  const avisos = (res?.avisos ?? []).filter((a) => a.modulo === modulo && !excluir?.(a.texto))
   if (!avisos.length) return null
   return (
     <div className="space-y-2">
       {avisos.map((a, i) => (
         <div key={i} className={cx('flex items-start gap-2.5 rounded-xl border px-4 py-2.5 text-[14px]',
-          a.nivel === 'error' ? 'border-red-200 bg-red-50 text-red-800' : 'border-amber-200 bg-amber-50 text-amber-900')}>
-          {a.nivel === 'error' ? <OctagonAlert className="mt-0.5 h-4 w-4 shrink-0" /> : <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />}
+          a.nivel === 'error' ? 'border-red-200 bg-red-50 text-red-800'
+            : a.nivel === 'info' ? 'border-sky-200 bg-sky-50 text-sky-900' : 'border-amber-200 bg-amber-50 text-amber-900')}>
+          {a.nivel === 'error' ? <OctagonAlert className="mt-0.5 h-4 w-4 shrink-0" />
+            : a.nivel === 'info' ? <Info className="mt-0.5 h-4 w-4 shrink-0" /> : <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" />}
           <span>{a.texto}</span>
         </div>
       ))}

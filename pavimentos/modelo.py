@@ -6,8 +6,8 @@ quedan siempre conectados.
 
 Unidades de entrada:
 - CBR en %, M_R y módulos E en psi (la interfaz convierte kg/cm² → psi).
-- Cargas por eje en toneladas o en kip (Transito.unidad_carga). Si son toneladas, el
-  motor convierte con Transito.kip_por_t (exacto 2,2046 o el ×2 práctico de la cátedra).
+- Cargas por eje en toneladas o en kip (Transito.unidad_carga). Las toneladas se
+  convierten a kip con el factor exacto 1 t = 2,20462 kip.
 - Espesores mínimos y redondeo en la unidad elegida (cm o pulg).
 """
 
@@ -17,8 +17,11 @@ import copy
 import json
 from dataclasses import asdict, dataclass, field, fields
 
-KIP_POR_T_EXACTO = 2.20462       # 1 t = 1000 kg = 2204,62 lb = 2,20462 kip
-KIP_POR_T_CATEDRA = 2.0          # simplificación usada en clase para leer las tablas a mano
+KIP_POR_T = 2.20462              # 1 t = 1000 kg = 2204,62 lb = 2,20462 kip
+
+# Distribución por carril recomendada por AASHTO 93 (Parte II, 2.1.3): carriles por sentido → (mín, máx)
+FC_AASHTO = {1: (1.00, 1.00), 2: (0.80, 1.00), 3: (0.60, 0.80), 4: (0.50, 0.75)}
+FD_AASHTO = (0.30, 0.70)         # distribución direccional (normalmente 0,5)
 
 
 @dataclass
@@ -36,10 +39,10 @@ class Transito:
     n: float = 15.0                   # período de diseño / vida útil de la etapa (años)
     fd: float = 0.5                   # distribución direccional
     fc: float = 1.0                   # distribución por carril
+    carriles: int = 1                 # carriles por sentido (define el rango recomendado de Fc; 4 = 4 o más)
     pt: float = 2.0                   # serviciabilidad terminal usada para los LEF
-    sn_lef: float = 3.0               # SN supuesto para entrar a las tablas LEF
+    sn_lef: float = 3.0               # SN supuesto: columna de las tablas LEF (1 a 6)
     unidad_carga: str = "t"           # unidad de las cargas por eje: "t" | "kip"
-    kip_por_t: float = KIP_POR_T_EXACTO  # conversión t → kip (2,2046 exacto; 2,0 práctico de cátedra)
     vehiculos: list = field(default_factory=list)
 
 

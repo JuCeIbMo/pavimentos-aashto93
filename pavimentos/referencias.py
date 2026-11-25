@@ -30,13 +30,13 @@ ECUACIONES = {
         "explica": "Factor de crecimiento compuesto: cuántos «años equivalentes al primero» se acumulan en n años si el tránsito crece a la tasa r.",
     },
     "esal": {
-        "latex": r"W_{18} = \sum_i TPDA_i \cdot FC_i \cdot 365 \cdot F_d \cdot F_c \cdot G_i",
+        "latex": r"W_{18} = \sum_i TPDA_i \cdot F_{cam,i} \cdot 365 \cdot F_d \cdot F_c \cdot G_i",
         "fuente": "AASHTO 93, Parte II, sec. 2.1.2",
         "ref": "aashto93",
-        "explica": "Ejes equivalentes de 18 kip (8,2 t) acumulados en el carril de diseño. FC es el factor de camión: la suma de los LEF de sus ejes.",
+        "explica": "Ejes equivalentes de 18 kip (8,2 t) acumulados en el carril de diseño. F_cam es el factor camión: la suma de los LEF de sus ejes; F_d y F_c, las distribuciones por sentido y por carril.",
     },
     "lef": {
-        "latex": r"FC = \sum_{ejes} LEF(\text{tipo}, \text{carga}, SN, p_t)",
+        "latex": r"F_{cam} = \sum_{ejes} LEF(\text{tipo}, \text{carga}, SN, p_t)",
         "fuente": "AASHTO 93, Apéndice D, tablas D.1–D.9",
         "ref": "aashto93_d",
         "explica": "El LEF dice cuántas pasadas del eje patrón de 18 kip producen el mismo daño que una pasada de ese eje. Crece aproximadamente con la 4.ª potencia de la carga.",

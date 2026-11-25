@@ -11,6 +11,7 @@ import math
 import os
 import re
 from functools import lru_cache
+from pathlib import Path
 from typing import Any
 
 from fastapi import FastAPI, HTTPException
@@ -27,6 +28,8 @@ from pavimentos.referencias import ECUACIONES, REFERENCIAS
 from pavimentos.resolver import MINIMOS_AASHTO, limpiar, resolver
 from pavimentos.sensibilidad import VARIABLES, barrido, comparar_escenarios, rango_por_defecto, tornado, valor_actual
 from pavimentos.validacion import listar, validar_todo
+
+RAIZ = Path(__file__).resolve().parent.parent
 
 app = FastAPI(title="Pavimentos AASHTO 93", version="1.0")
 
@@ -105,11 +108,10 @@ def proyecto_nuevo():
 
 @app.get("/api/proyecto/inicial")
 def proyecto_inicial():
-    for e in listar():
-        if e["id"].startswith("01"):
-            p = ProyectoFlexible.from_dict(e["proyecto"])
-            p.nombre = "Mi proyecto (basado en el Práctico 3)"
-            return p.to_dict()
+    """Proyecto con datos de ejemplo para no empezar en blanco."""
+    ruta = RAIZ / "data" / "proyecto_inicial.json"
+    if ruta.exists():
+        return ProyectoFlexible.from_json(ruta.read_text(encoding="utf-8")).to_dict()
     return ProyectoFlexible().to_dict()
 
 
@@ -126,8 +128,7 @@ def ejemplos():
 
 @app.get("/api/catalogo")
 def api_catalogo():
-    return {"fuente": catalogo.FUENTE_PRACTICO3,
-            "opciones": [{"etiqueta": et, **pl} for et, pl in catalogo.opciones()]}
+    return {"opciones": [{"etiqueta": et, **pl} for et, pl in catalogo.opciones()]}
 
 
 @app.get("/api/referencias")

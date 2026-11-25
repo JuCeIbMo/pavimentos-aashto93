@@ -7,8 +7,31 @@ from pavimentos.unidades import cm_a_pulg, pulg_a_cm
 
 
 def zr_de_r(r_pct: float) -> float:
-    """Desviación normal estandarizada para la confiabilidad R (%)."""
-    return -NormalDist().inv_cdf(r_pct / 100.0)
+    """Desviación normal estandarizada ZR para la confiabilidad R (%).
+
+    Idea: el comportamiento real del pavimento se dispersa alrededor de lo que
+    predice la ecuación, y esa dispersión sigue una distribución normal. Pedir
+    una confiabilidad R es pedir que la probabilidad de que el pavimento dure
+    lo previsto sea R. ZR es el punto de la normal estándar (media 0,
+    desviación 1) que deja por encima un área igual a R.
+
+    Es el mismo número de la tabla de ZR del apunte (R = 90 % -> ZR = -1,282;
+    R = 95 % -> -1,645), pero calculado exacto en vez de leído.
+    """
+    # NormalDist() sin argumentos es la normal estándar: media 0, desviación 1.
+    # Viene en la biblioteca estándar de Python (módulo statistics), no hace
+    # falta instalar nada.
+    normal = NormalDist()
+
+    # inv_cdf(p) es la inversa de la función de distribución acumulada:
+    # devuelve el valor z tal que P(Z <= z) = p.
+    #   R = 90 %  ->  p = 0,90  ->  z = +1,2816
+    # La tabla AASHTO usa ZR negativo (el área R queda a la derecha de ZR),
+    # por eso se cambia el signo: ZR = -1,2816.
+    # ZR negativo hace que el término ZR*So de la ecuación reste, así que hace
+    # falta más SN para el mismo W18: ese es el margen de seguridad.
+    p = r_pct / 100.0
+    return -normal.inv_cdf(p)
 
 
 def r_etapa(r_global_pct: float, n_etapas: int) -> float:
@@ -29,15 +52,41 @@ def log_w18(sn: float, zr: float, so: float, delta_psi: float, mr: float) -> flo
 
 
 def sn_requerido(w18: float, zr: float, so: float, delta_psi: float, mr: float) -> float:
-    """Número estructural requerido por bisección en [0.5, 10]."""
+    """Número estructural requerido, por bisección en [0,5; 10].
+
+    Problema: la ecuación AASHTO da log(W18) en función del SN, pero el SN
+    aparece dos veces (en log(SN+1) y en (SN+1)^5,19) y no se puede despejar.
+    Lo que sí se puede es evaluarla: dado un SN, log_w18() dice cuántos ejes
+    aguanta. Buscamos el SN para el que eso es igual al W18 de diseño.
+
+    Por qué funciona la bisección: cuanto mayor es el SN, más ejes aguanta
+    (la función crece siempre). Entonces, si un SN aguanta menos que W18, la
+    respuesta está por encima; si aguanta más, está por debajo. Cada vuelta
+    parte el intervalo por la mitad y se queda con la mitad donde está la
+    respuesta. Es lo mismo que hacer "prueba y error" a mano o leer el ábaco,
+    pero ordenado.
+    """
+    # Lo que tiene que dar la ecuación: log10 del W18 de diseño.
     objetivo = math.log10(w18)
+
+    # Intervalo inicial [lo, hi]. Ningún pavimento real necesita SN fuera de
+    # 0,5 a 10, así que la respuesta está adentro.
     lo, hi = 0.5, 10.0
+
+    # Cada vuelta divide el intervalo por 2. Tras 100 vueltas el ancho es
+    # 9,5 / 2^100, mucho menos que cualquier precisión que importe.
+    # (Con unas 20 vueltas ya alcanza para 4 decimales.)
     for _ in range(100):
-        mid = (lo + hi) / 2.0
-        if log_w18(mid, zr, so, delta_psi, mr) < objetivo:
+        mid = (lo + hi) / 2.0                         # SN de prueba: el medio
+        aguanta = log_w18(mid, zr, so, delta_psi, mr)  # log de los ejes que aguanta ese SN
+        if aguanta < objetivo:
+            # Se queda corto: el SN buscado es mayor. Descartamos la mitad de abajo.
             lo = mid
         else:
+            # Sobra: el SN buscado es menor o igual. Descartamos la mitad de arriba.
             hi = mid
+
+    # lo y hi ya son prácticamente iguales: el medio es el SN requerido.
     return (lo + hi) / 2.0
 
 

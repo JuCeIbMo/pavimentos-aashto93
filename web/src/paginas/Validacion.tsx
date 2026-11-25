@@ -1,4 +1,4 @@
-import { CheckCircle2, ChevronDown, FileDown, Info, Loader2, Upload, XCircle } from 'lucide-react'
+import { CheckCircle2, ChevronDown, FileDown, Info, Loader2, ShieldCheck, Upload, XCircle } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Boton, Concepto, Encabezado, Kpi, Kpis, Tabla, cx, td, tdNum, th } from '../components/ui'
 import { api, descargar, type Validacion as V } from '../lib/api'
@@ -16,7 +16,7 @@ export default function Validacion() {
 
   return (
     <div className="space-y-6">
-      <Encabezado num="✓" titulo="Validación del paquete" sub="Ejercicios resueltos de fuentes independientes, comparados valor por valor." />
+      <Encabezado num={<ShieldCheck className="h-5 w-5" />} titulo="Validación del paquete" sub="Ejercicios resueltos de fuentes independientes, comparados valor por valor." />
       <Concepto titulo="¿Cómo se valida el programa?">
         <p>Un programa de diseño solo es confiable si reproduce resultados conocidos. Cada ejercicio está guardado como un
           <strong> proyecto completo</strong>: el programa lo resuelve desde cero y compara cada valor intermedio y final con el de la fuente.</p>
@@ -53,7 +53,7 @@ function Ejercicio({ v }: { v: V }) {
           <div className="text-[15px] font-semibold text-slate-900">{v.fuente.titulo}</div>
           <div className="text-[13px] text-slate-500">{v.fuente.tipo} · {v.fuente.referencia}</div>
         </div>
-        <span className="rounded-full bg-emerald-50 px-2.5 py-1 font-mono text-[12.5px] text-emerald-700">{v.n_ok}/{v.n_total}</span>
+        <span className={cx('num rounded-full px-2.5 py-1 text-[12.5px]', v.aprobado ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700')}>{v.n_ok}/{v.n_total}</span>
         <ChevronDown className={cx('h-4 w-4 text-slate-400 transition', abierto && 'rotate-180')} />
       </button>
       {abierto && (

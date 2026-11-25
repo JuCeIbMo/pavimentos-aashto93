@@ -1,3 +1,4 @@
+import { BookOpen } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { Encabezado, Latex, Tarjeta } from '../components/ui'
 import { api, type Referencias as R } from '../lib/api'
@@ -20,7 +21,7 @@ export default function Referencias() {
   useEffect(() => { api.referencias().then(setD) }, [])
   return (
     <div className="space-y-6">
-      <Encabezado num="§" titulo="Referencias y ecuaciones" sub="Bibliografía y fuente de cada ecuación implementada en el paquete." />
+      <Encabezado num={<BookOpen className="h-5 w-5" />} titulo="Referencias y ecuaciones" sub="Bibliografía y fuente de cada ecuación implementada en el paquete." />
       <Tarjeta titulo="Bibliografía" sub="Normas APA.">
         <ul className="space-y-2.5">
           {d && Object.values(d.referencias).map((t, i) => (

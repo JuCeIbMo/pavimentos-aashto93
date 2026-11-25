@@ -188,7 +188,8 @@
           "cbr": 4,
           "mr": null
         }
-      ]
+      ],
+      "dato": "cbr"
     },
     "diseno": {
       "r_pct": 85,

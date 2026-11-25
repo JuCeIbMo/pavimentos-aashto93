@@ -18,7 +18,8 @@
       "vehiculos": []
     },
     "subrasante": {
-      "periodos": []
+      "periodos": [],
+      "dato": "cbr"
     },
     "diseno": {
       "r_pct": 90,

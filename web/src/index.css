@@ -29,3 +29,9 @@ input[type='number']::-webkit-inner-spin-button { -webkit-appearance: none; }
 .prosa ol { list-style: decimal; padding-left: 1.25rem; }
 .prosa li + li { margin-top: 0.25em; }
 .prosa strong { font-weight: 600; color: #0f172a; }
+
+/* superficies del navegador */
+html { scrollbar-color: #cbd5e1 transparent; }
+input, textarea { caret-color: #d97706; }
+:focus-visible { outline: 2px solid #f59e0b; outline-offset: 2px; }
+input:focus-visible, select:focus-visible, textarea:focus-visible { outline: none; }

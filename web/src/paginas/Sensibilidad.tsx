@@ -1,4 +1,4 @@
-import { Loader2 } from 'lucide-react'
+import { Gauge, Loader2 } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import {
   Area, AreaChart, Bar, BarChart, CartesianGrid, ComposedChart, Legend, Line, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis,
@@ -21,7 +21,7 @@ export default function Sensibilidad() {
 
   return (
     <div className="space-y-6">
-      <Encabezado num="±" titulo="Sensibilidad y escenarios" sub="Cómo cambia el diseño cuando cambian los supuestos, y qué variable pesa más." />
+      <Encabezado num={<Gauge className="h-5 w-5" />} titulo="Sensibilidad y escenarios" sub="Cómo cambia el diseño cuando cambian los supuestos, y qué variable pesa más." />
       <Concepto titulo="¿Para qué sirve un análisis de sensibilidad?">
         <p>Un diseño no es un número: es la respuesta a un conjunto de supuestos. Esta página muestra <strong>qué pasa si un supuesto
           cambia</strong> y <strong>cuál pesa más</strong>. Cada punto es el diseño completo recalculado (con los mismos mínimos y redondeos).</p>

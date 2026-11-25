@@ -23,7 +23,7 @@ const POSICION = ['Eje delantero', 'Eje trasero 1', 'Eje trasero 2', 'Eje traser
 const AYUDA = {
   n: 'Años de servicio que debe cubrir esta etapa. AASHTO recomienda 10–20 años para la etapa inicial.',
   fd: 'Fracción del tránsito (ambos sentidos) que va en la dirección más cargada. AASHTO: 0,3 a 0,7; se usa 0,5 si el tránsito es parejo en los dos sentidos. Si el TPDA ya es de un solo sentido, Fd = 1.',
-  fc: 'Fracción de los vehículos de esa dirección que circula por el carril de diseño (el de la derecha, por donde van los pesados). Depende de cuántos carriles hay por sentido.',
+  fc: 'Porcentaje de los ESAL de esa dirección que pasa por el carril de diseño (el de la derecha, por donde van los pesados), expresado como fracción. Con 1 carril por sentido todo pasa por él (1,00); con más carriles los pesados se reparten: 2 → 80–100 %, 3 → 60–80 %, 4 o más → 50–75 %.',
   pt: 'Serviciabilidad terminal con la que se eligen las tablas LEF (2,0; 2,5 o 3,0). Conviene igualarla al pt de diseño.',
   sn: 'Columna de las tablas LEF. Como el SN todavía no se conoce (es lo que se diseña), se supone uno; si el SN de diseño difiere en más de 0,5, se repite con la columna más cercana.',
 }
@@ -49,7 +49,7 @@ export default function Transito() {
 
   return (
     <div className="space-y-6">
-      <Encabezado num="01" titulo="Cálculo de ejes equivalentes"
+      <Encabezado num="1" titulo="Cálculo de ejes equivalentes"
         sub="Convierte el TPDA y la composición vehicular en repeticiones del eje patrón de 18 kip (W18)." />
 
       <Concepto titulo="¿Qué es un eje equivalente y por qué importa?">
@@ -263,7 +263,7 @@ function TablaVehiculos({ nEjes }: { nEjes: number }) {
           return (
             <tr key={i} className={cx('group align-top', incompleta ? 'bg-amber-50/60' : 'hover:bg-slate-50/50')}>
               <td className={cx(td, 'pt-3 text-center')}>
-                <div className="font-mono text-[12px] text-slate-400">{i + 1}</div>
+                <div className="num text-[12.5px] text-slate-400">{i + 1}</div>
                 {res && (incompleta
                   ? <span title={`Falta: ${faltan.join(', ')}. Esta fila no suma al W18 hasta completarla.`}><CircleAlert className="mx-auto mt-1 h-4 w-4 text-amber-500" /></span>
                   : <span title="Fila completa: entra en el cálculo"><CheckCircle2 className="mx-auto mt-1 h-4 w-4 text-emerald-500" /></span>)}
@@ -353,7 +353,7 @@ function AgregarVehiculo() {
         <div className="absolute bottom-11 left-0 z-30 w-72 rounded-xl border border-slate-200 bg-white p-1.5 shadow-xl">
           <button onClick={() => agregar([])}
             className="w-full rounded-lg px-3 py-2 text-left text-[13.5px] font-medium text-slate-800 hover:bg-slate-50">Fila vacía</button>
-          <div className="px-3 pb-1 pt-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Con disposición de ejes</div>
+          <div className="px-3 pb-1 pt-3 text-[12px] font-medium text-slate-500">Con disposición de ejes</div>
           {(cat ?? []).map((o) => (
             <button key={o.etiqueta} onClick={() => agregar(o.ejes.map(([tp]) => tp as TipoEje))}
               className="w-full rounded-lg px-3 py-1.5 text-left text-[13.5px] text-slate-700 hover:bg-slate-50">{o.etiqueta}</button>

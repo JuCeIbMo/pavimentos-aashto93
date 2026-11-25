@@ -10,10 +10,10 @@ export function cx(...c: (string | false | null | undefined)[]) {
 }
 
 // ------------------------------------------------------------------ estructura de página
-export function Encabezado({ num: n, titulo, sub }: { num: string; titulo: string; sub: string }) {
+export function Encabezado({ num: n, titulo, sub }: { num: ReactNode; titulo: string; sub: string }) {
   return (
     <header className="mb-6 flex items-start gap-4">
-      <div className="grid h-12 w-12 shrink-0 place-items-center rounded-xl bg-slate-900 font-mono text-lg font-semibold text-acento-400 shadow-sm">
+      <div className="num grid h-12 w-12 shrink-0 place-items-center rounded-xl border border-slate-200 bg-white text-lg font-semibold text-slate-700">
         {n}
       </div>
       <div>
@@ -28,7 +28,7 @@ export function Tarjeta({ titulo, sub, children, acciones, className, pad = true
   titulo?: ReactNode; sub?: ReactNode; children: ReactNode; acciones?: ReactNode; className?: string; pad?: boolean
 }) {
   return (
-    <section className={cx('rounded-2xl border border-slate-200 bg-white shadow-[0_1px_2px_rgba(15,23,42,0.04)]', className)}>
+    <section className={cx('rounded-2xl border border-slate-200 bg-white', className)}>
       {(titulo || acciones) && (
         <div className="flex flex-wrap items-start justify-between gap-3 border-b border-slate-100 px-5 py-3.5">
           <div>
@@ -46,7 +46,7 @@ export function Tarjeta({ titulo, sub, children, acciones, className, pad = true
 export function Kpi({ etiqueta, valor, sub, destacado }: { etiqueta: ReactNode; valor: ReactNode; sub?: ReactNode; destacado?: boolean }) {
   return (
     <div className={cx('rounded-xl border px-4 py-3', destacado ? 'border-acento-200 bg-acento-50' : 'border-slate-200 bg-white')}>
-      <div className="text-[12px] font-medium uppercase tracking-wide text-slate-500">{etiqueta}</div>
+      <div className="text-[13px] text-slate-500">{etiqueta}</div>
       <div className={cx('num mt-1 font-mono text-[22px] font-semibold leading-tight', destacado ? 'text-acento-700' : 'text-slate-900')}>{valor}</div>
       {sub && <div className="mt-0.5 text-[12.5px] text-slate-500">{sub}</div>}
     </div>
@@ -241,9 +241,9 @@ export function Boton({ children, onClick, variante = 'secundario', icono, disab
 export function Concepto({ titulo, children, abierto = false }: { titulo: string; children: ReactNode; abierto?: boolean }) {
   const [a, setA] = useState(abierto)
   return (
-    <div className="mb-6 overflow-hidden rounded-2xl border border-acento-200/70 bg-gradient-to-br from-acento-50 to-white">
+    <div className="mb-6 overflow-hidden rounded-2xl border border-acento-200/70 bg-acento-50/50">
       <button type="button" onClick={() => setA(!a)} className="flex w-full items-center gap-3 px-5 py-3.5 text-left">
-        <span className="grid h-8 w-8 place-items-center rounded-lg bg-acento-100 text-acento-700"><Lightbulb className="h-4 w-4" /></span>
+        <Lightbulb className="h-4 w-4 shrink-0 text-acento-700" />
         <span className="flex-1 text-[15px] font-semibold text-slate-800">{titulo}</span>
         <span className="text-[12.5px] text-acento-700">{a ? 'Ocultar' : 'Ver la explicación'}</span>
         <ChevronDown className={cx('h-4 w-4 text-acento-700 transition', a && 'rotate-180')} />
@@ -312,7 +312,7 @@ export function Ecuaciones({ claves, children }: { claves: string[]; children?: 
   return (
     <div className="rounded-2xl border border-slate-200 bg-white">
       <button type="button" onClick={() => setA(!a)} className="flex w-full items-center gap-3 px-5 py-3.5 text-left">
-        <span className="grid h-8 w-8 place-items-center rounded-lg bg-slate-100 text-slate-600"><Sigma className="h-4 w-4" /></span>
+        <Sigma className="h-4 w-4 shrink-0 text-slate-500" />
         <span className="flex-1 text-[15px] font-semibold text-slate-800">Procedimiento y ecuaciones</span>
         <ChevronDown className={cx('h-4 w-4 text-slate-500 transition', a && 'rotate-180')} />
       </button>
@@ -350,7 +350,7 @@ export function Tabla({ children, className }: { children: ReactNode; className?
     </div>
   )
 }
-export const th = 'border-b border-slate-200 bg-slate-50 px-3 py-2 text-left text-[12px] font-semibold uppercase tracking-wide text-slate-500'
+export const th = 'border-b border-slate-200 bg-slate-50 px-3 py-2 text-left text-[12.5px] font-medium text-slate-600'
 export const td = 'border-b border-slate-100 px-3 py-2 text-slate-700'
 export const tdNum = 'border-b border-slate-100 px-3 py-2 text-right font-mono num text-slate-800'
 

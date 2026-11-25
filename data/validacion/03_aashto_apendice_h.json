@@ -52,7 +52,8 @@
           "cbr": null,
           "mr": 6500
         }
-      ]
+      ],
+      "dato": "mr"
     },
     "diseno": {
       "r_pct": 95,

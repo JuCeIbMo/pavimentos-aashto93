@@ -13,46 +13,42 @@ export default function Inicio() {
   useEffect(() => { api.ejemplos().then(setEjemplos) }, [])
 
   const pasos: { id: Pagina; n: string; titulo: string; desc: string; icono: ReactNode; ok: boolean | null; valor: string }[] = [
-    { id: 'transito', n: '01', titulo: 'Tránsito', desc: 'Ejes equivalentes W18', icono: <Truck className="h-5 w-5" />, ok: !!r?.transito,
+    { id: 'transito', n: '1', titulo: 'Tránsito', desc: 'Ejes equivalentes W18', icono: <Truck className="h-5 w-5" />, ok: !!r?.transito,
       valor: r?.transito ? `W18 = ${entero(r.transito.w18)}` : 'Falta la composición vehicular' },
-    { id: 'subrasante', n: '02', titulo: 'Subrasante', desc: 'Módulo resiliente efectivo', icono: <Mountain className="h-5 w-5" />, ok: !!r?.subrasante,
+    { id: 'subrasante', n: '2', titulo: 'Subrasante', desc: 'Módulo resiliente efectivo', icono: <Mountain className="h-5 w-5" />, ok: !!r?.subrasante,
       valor: r?.subrasante ? `MR = ${entero(r.subrasante.mr_efectivo)} psi` : 'Faltan los períodos' },
-    { id: 'diseno', n: '04', titulo: 'Diseño flexible', desc: 'SN y espesores', icono: <Layers className="h-5 w-5" />, ok: !!r?.capas,
+    { id: 'diseno', n: '4', titulo: 'Diseño flexible', desc: 'SN y espesores', icono: <Layers className="h-5 w-5" />, ok: !!r?.capas,
       valor: r?.capas ? r.capas.capas.map((c) => num(c.d, 1)).join(' / ') + ` ${r.capas.unidad}` : 'Completá los datos' },
-    { id: 'clima', n: '06', titulo: 'Clima', desc: 'Vida útil por hinchamiento y helada', icono: <CloudSnow className="h-5 w-5" />,
+    { id: 'clima', n: '6', titulo: 'Clima', desc: 'Vida útil por hinchamiento y helada', icono: <CloudSnow className="h-5 w-5" />,
       ok: p.clima.activo ? !!r?.clima : null, valor: r?.clima ? `${num(r.clima.periodo, 1)} años` : p.clima.activo ? 'Revisar' : 'No considerado' },
   ]
 
   return (
     <div className="space-y-8">
-      <section className="relative overflow-hidden rounded-3xl bg-slate-950 px-10 py-10 text-white">
-        <div className="absolute inset-x-0 bottom-0 h-24 bg-[repeating-linear-gradient(90deg,transparent_0_40px,rgba(245,158,11,0.9)_40px_90px)] [mask-image:linear-gradient(to_top,black,transparent)] opacity-20" />
-        <div className="relative max-w-3xl">
-          <div className="mb-3 text-[13px] font-medium uppercase tracking-[0.15em] text-acento-400">Diseño de pavimentos flexibles · AASHTO 1993</div>
-          <h1 className="text-[34px] font-semibold leading-tight tracking-tight">Del tránsito a los espesores, con cada decisión explicada.</h1>
+      <section className="rounded-2xl bg-slate-950 px-10 py-10 text-white">
+        <div className="max-w-3xl">
+          <h1 className="text-balance text-[34px] font-semibold leading-tight tracking-tight">Del tránsito a los espesores, con cada decisión explicada.</h1>
           <p className="mt-3 text-[16px] leading-relaxed text-slate-300">
             Cargá los datos módulo por módulo: los resultados se recalculan al instante y alimentan al módulo siguiente.
             Al final exportá la memoria de cálculo en PDF o el libro Excel con fórmulas vivas.
           </p>
-          <div className="mt-6 flex flex-wrap gap-2">
-            {['Módulos 1 · 2 · 4 · 6 conectados', 'Validado con 4 ejercicios', 'Memoria PDF y Excel', 'Sensibilidad y escenarios'].map((c) => (
-              <span key={c} className="rounded-full bg-white/10 px-3 py-1 text-[12.5px] text-slate-200 ring-1 ring-white/10">{c}</span>
-            ))}
-          </div>
+          <p className="mt-5 text-[13.5px] text-slate-400">
+            Módulos 1, 2, 4 y 6 conectados · validado con 4 ejercicios · sensibilidad y escenarios
+          </p>
         </div>
       </section>
 
       <div>
-        <h2 className="mb-3 text-[13px] font-semibold uppercase tracking-wider text-slate-500">Flujo de cálculo</h2>
+        <h2 className="mb-3 text-[15px] font-semibold text-slate-900">Flujo de cálculo</h2>
         <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-4">
           {pasos.map((s, i) => (
             <button key={s.id} onClick={() => ir(s.id)}
-              className="group relative rounded-2xl border border-slate-200 bg-white p-5 text-left transition hover:-translate-y-0.5 hover:border-acento-300 hover:shadow-md">
+              className="group relative rounded-2xl border border-slate-200 bg-white p-5 text-left transition-colors hover:border-acento-400">
               <div className="flex items-center justify-between">
-                <span className="grid h-10 w-10 place-items-center rounded-xl bg-slate-100 text-slate-700 group-hover:bg-acento-100 group-hover:text-acento-700">{s.icono}</span>
+                <span className="text-slate-500 group-hover:text-acento-700">{s.icono}</span>
                 {s.ok === true ? <CheckCircle2 className="h-5 w-5 text-emerald-500" /> : <CircleDashed className="h-5 w-5 text-slate-300" />}
               </div>
-              <div className="mt-4 font-mono text-[12px] text-slate-400">Módulo {s.n}</div>
+              <div className="mt-4 text-[12.5px] text-slate-500">Módulo {s.n}</div>
               <div className="text-[16px] font-semibold text-slate-900">{s.titulo}</div>
               <div className="text-[13px] text-slate-500">{s.desc}</div>
               <div className={cx('mt-3 font-mono text-[13.5px]', s.ok ? 'text-slate-800' : 'text-slate-400')}>{s.valor}</div>
@@ -76,8 +72,8 @@ export default function Inicio() {
           <div className="space-y-2">
             {ejemplos.map((e) => (
               <button key={e.id} onClick={() => { reemplazar(e.proyecto); ir('transito') }}
-                className="flex w-full items-center gap-3 rounded-xl border border-slate-200 px-4 py-3 text-left transition hover:border-acento-300 hover:bg-acento-50/40">
-                <span className="grid h-8 w-8 shrink-0 place-items-center rounded-lg bg-slate-100 font-mono text-[12px] text-slate-500">{e.id.slice(0, 2)}</span>
+                className="flex w-full items-center gap-3 rounded-xl border border-slate-200 px-4 py-3 text-left transition hover:border-acento-400">
+                <span className="num w-6 shrink-0 text-center text-[13px] text-slate-400">{Number(e.id.slice(0, 2))}</span>
                 <span className="min-w-0 flex-1">
                   <span className="block truncate text-[14px] font-medium text-slate-800">{e.fuente.titulo}</span>
                   <span className="block text-[12.5px] text-slate-500">{e.fuente.tipo}</span>
@@ -87,7 +83,7 @@ export default function Inicio() {
             ))}
             <button onClick={async () => { reemplazar(await api.nuevo()); ir('transito') }}
               className="flex w-full items-center gap-3 rounded-xl border border-dashed border-slate-300 px-4 py-3 text-left transition hover:border-slate-400 hover:bg-slate-50">
-              <span className="grid h-8 w-8 place-items-center rounded-lg bg-slate-100 text-slate-500"><FilePlus2 className="h-4 w-4" /></span>
+              <span className="grid w-6 place-items-center text-slate-400"><FilePlus2 className="h-4 w-4" /></span>
               <span className="flex-1 text-[14px] font-medium text-slate-700">Proyecto en blanco</span>
             </button>
           </div>

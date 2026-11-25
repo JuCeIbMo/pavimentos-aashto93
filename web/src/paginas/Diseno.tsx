@@ -2,7 +2,7 @@ import { CheckCircle2, XCircle } from 'lucide-react'
 import { useState, type ReactNode } from 'react'
 import Estructura from '../components/Estructura'
 import {
-  Avisos, Boton, CampoNumero, CampoSelector, Concepto, Decisiones, Ecuaciones, Encabezado, Etiqueta, Kpi, Kpis, Latex, Nota,
+  Avisos, CampoNumero, CampoSelector, Concepto, Decisiones, Ecuaciones, Encabezado, Kpi, Kpis, Nota,
   Numero, Segmentado, Tabla, Tarjeta, cx, td, tdNum, th,
 } from '../components/ui'
 import { entero, g, num, pct } from '../lib/formato'
@@ -21,13 +21,22 @@ const AYUDA = {
 
 // AASHTO 93, tabla 2.4: m por calidad de drenaje (filas) y % del tiempo cerca de la saturación (columnas): [máx, mín]
 const TABLA_M: [string, string, [number, number][]][] = [
-  ['Excelente', '½ día', [[1.40, 1.35], [1.35, 1.30], [1.30, 1.20], [1.20, 1.20]]],
+  ['Excelente', '2 horas', [[1.40, 1.35], [1.35, 1.30], [1.30, 1.20], [1.20, 1.20]]],
   ['Bueno', '1 día', [[1.35, 1.25], [1.25, 1.15], [1.15, 1.00], [1.00, 1.00]]],
   ['Regular', '1 semana', [[1.25, 1.15], [1.15, 1.05], [1.00, 0.80], [0.80, 0.80]]],
-  ['Pobre', '1 mes', [[1.15, 1.05], [1.05, 0.80], [0.80, 0.60], [0.60, 0.60]]],
-  ['Muy pobre', 'no drena', [[1.05, 0.95], [0.95, 0.75], [0.75, 0.40], [0.40, 0.40]]],
+  ['Malo', '1 mes', [[1.15, 1.05], [1.05, 0.80], [0.80, 0.60], [0.60, 0.60]]],
+  ['Muy malo', 'no drena', [[1.05, 0.95], [0.95, 0.75], [0.75, 0.40], [0.40, 0.40]]],
 ]
 const EXPOSICION = ['< 1 %', '1 – 5 %', '5 – 25 %', '> 25 %']
+
+// Tabla 4.3 (Cabezas, 2006; AASHTO 93, tabla 2.2): confiabilidad recomendada por tipo de vía, [urbana, rural]
+const TABLA_R: Record<string, { nombre: string; urbana: [number, number]; rural: [number, number] }> = {
+  autopista: { nombre: 'Autopista o vía expresa', urbana: [85, 99.9], rural: [80, 99.9] },
+  arteria: { nombre: 'Arteria principal', urbana: [80, 99], rural: [75, 95] },
+  colectora: { nombre: 'Colectora', urbana: [80, 95], rural: [75, 95] },
+  local: { nombre: 'Local', urbana: [50, 80], rural: [50, 80] },
+}
+const rangoTxt = ([a, b]: [number, number]) => `${num(a, a % 1 ? 1 : 0)} – ${num(b, b % 1 ? 1 : 0)}`
 
 export default function Diseno() {
   const p = useProyecto()
@@ -38,10 +47,11 @@ export default function Diseno() {
   const sub = r?.subrasante
   const di = r?.diseno
   const ca = r?.capas
+  const rangoR = d.tipo_via && TABLA_R[d.tipo_via] ? TABLA_R[d.tipo_via][(d.zona ?? 'rural') as 'urbana' | 'rural'] : null
 
   return (
     <div className="space-y-6">
-      <Encabezado num="04" titulo="Diseño de pavimentos flexibles" sub="Número estructural requerido y espesores de carpeta, base y subbase." />
+      <Encabezado num="4" titulo="Diseño de pavimentos flexibles" sub="Número estructural requerido y espesores de carpeta, base y subbase." />
 
       <Concepto titulo="¿Cómo funciona la ecuación AASHTO 93?">
         <p>La ecuación relaciona <strong>cuántas repeticiones de carga (W<sub>18</sub>)</strong> soporta un pavimento con su
@@ -81,29 +91,54 @@ export default function Diseno() {
         </Tarjeta>
       </div>
 
-      <Tarjeta titulo="Confiabilidad y serviciabilidad">
-        <div className="grid grid-cols-2 gap-4 md:grid-cols-6">
-          <CampoNumero etiqueta="Confiabilidad R (%)" ayuda={AYUDA.r} valor={d.r_pct} dec={1} min={50} max={99.99}
-            alCambiar={(v) => editar((p) => { p.diseno.r_pct = v ?? 50 })} />
-          <CampoNumero etiqueta="Etapas" ayuda={AYUDA.etapas} valor={d.etapas} dec={0} min={1} max={4}
-            alCambiar={(v) => editar((p) => { p.diseno.etapas = Math.max(1, Math.round(v ?? 1)) })} />
-          <CampoNumero etiqueta="Desviación So" ayuda={AYUDA.so} valor={d.so} min={0.3} max={0.6}
-            alCambiar={(v) => editar((p) => { p.diseno.so = v ?? 0.45 })} />
-          <CampoNumero etiqueta="p0 inicial" ayuda={AYUDA.p0} valor={d.p0} dec={1} min={3} max={5}
-            alCambiar={(v) => editar((p) => { p.diseno.p0 = v ?? 4.2 })} />
-          <CampoNumero etiqueta="pt terminal" ayuda={AYUDA.pt} valor={d.pt} dec={1} min={1.5} max={3.5}
-            alCambiar={(v) => editar((p) => { p.diseno.pt = v ?? 2.5 })} />
-          <div>
-            <Etiqueta>ΔPSI = p0 − pt</Etiqueta>
-            <div className="num flex h-9 items-center justify-end rounded-lg bg-slate-100 px-3 font-mono text-[14px] text-slate-700">{num(d.p0 - d.pt, 2)}</div>
-          </div>
+      <Tarjeta titulo="Confiabilidad y serviciabilidad" sub="El selector de la izquierda de cada recuadro es un atajo con la tabla; el valor de la derecha es el que entra al cálculo y se puede corregir a mano.">
+        <div className="grid grid-cols-1 gap-x-4 gap-y-5 xl:grid-cols-[2.4fr_1.6fr]">
+          <Grupo columnas="grid-cols-[1.3fr_1fr_0.9fr]">
+            <CampoSelector etiqueta="Tipo de vía (tabla 4.3)" valor={d.tipo_via ?? 'otro'}
+              opciones={[...Object.entries(TABLA_R).map(([k, v]) => ({ valor: k, etiqueta: v.nombre })), { valor: 'otro', etiqueta: 'Otro (a mano)' }]}
+              alCambiar={(v) => editar((p) => { p.diseno.tipo_via = v === 'otro' ? null : v; aplicarR(p.diseno) })} />
+            <CampoSelector etiqueta="Zona" valor={d.zona ?? 'rural'}
+              opciones={[{ valor: 'urbana', etiqueta: 'Urbana' }, { valor: 'rural', etiqueta: 'Rural' }]}
+              alCambiar={(v) => editar((p) => { p.diseno.zona = v; aplicarR(p.diseno) })} />
+            <div>
+              <CampoNumero etiqueta="R (%)" ayuda={AYUDA.r} valor={d.r_pct} dec={1} min={rangoR?.[0] ?? 50} max={rangoR?.[1] ?? 99.99}
+                alCambiar={(v) => editar((p) => { p.diseno.r_pct = v ?? 50 })} />
+              <Pista>{rangoR ? `Tabla 4.3: ${rangoTxt(rangoR)} %` : 'Elegí el tipo de vía'}</Pista>
+            </div>
+          </Grupo>
+          <Grupo columnas="grid-cols-[1.4fr_1fr]">
+            <CampoSelector etiqueta="Errores en el tránsito (tabla 4.2)" valor={d.so === 0.49 ? 'con' : d.so === 0.44 ? 'sin' : 'otro'}
+              opciones={[{ valor: 'con', etiqueta: 'Con errores (0,49)' }, { valor: 'sin', etiqueta: 'Sin errores (0,44)' }, { valor: 'otro', etiqueta: 'Otro valor (a mano)' }]}
+              alCambiar={(v) => { if (v !== 'otro') editar((p) => { p.diseno.so = v === 'con' ? 0.49 : 0.44 }) }} />
+            <div>
+              <CampoNumero etiqueta="So" ayuda={AYUDA.so} valor={d.so} min={0.4} max={0.5}
+                alCambiar={(v) => editar((p) => { p.diseno.so = v ?? 0.45 })} />
+              <Pista>Flexible: 0,40 – 0,50</Pista>
+            </div>
+          </Grupo>
+          <Grupo columnas="grid-cols-[1.3fr_1fr_0.9fr]">
+            <CampoSelector etiqueta="Importancia de la vía" valor={d.pt === 2.5 ? 'principal' : d.pt === 2 ? 'menor' : 'otro'}
+              opciones={[{ valor: 'principal', etiqueta: 'Vía principal (pt 2,5)' }, { valor: 'menor', etiqueta: 'Tránsito menor (pt 2,0)' }, { valor: 'otro', etiqueta: 'Otro valor (a mano)' }]}
+              alCambiar={(v) => { if (v !== 'otro') editar((p) => { p.diseno.pt = v === 'principal' ? 2.5 : 2 }) }} />
+            <div>
+              <CampoNumero etiqueta="p0 inicial" ayuda={AYUDA.p0} valor={d.p0} dec={1} min={3} max={5}
+                alCambiar={(v) => editar((p) => { p.diseno.p0 = v ?? 4.2 })} />
+              <Pista>Flexible: 4,2</Pista>
+            </div>
+            <div>
+              <CampoNumero etiqueta="pt terminal" ayuda={AYUDA.pt} valor={d.pt} dec={1} min={1.5} max={3.5}
+                alCambiar={(v) => editar((p) => { p.diseno.pt = v ?? 2.5 })} />
+              <Pista>ΔPSI = {num(d.p0 - d.pt, 2)}</Pista>
+            </div>
+          </Grupo>
+          <Grupo columnas="grid-cols-1">
+            <div>
+              <CampoNumero etiqueta="Etapas de construcción" ayuda={AYUDA.etapas} valor={d.etapas} dec={0} min={1} max={4}
+                alCambiar={(v) => editar((p) => { p.diseno.etapas = Math.max(1, Math.round(v ?? 1)) })} />
+              {di && <Pista>Z<sub>R</sub> = {num(di.zr, 3)}{di.etapas > 1 && <> · R por etapa = R<sup>1/{di.etapas}</sup> = {pct(di.r_etapa, 2)}</>}</Pista>}
+            </div>
+          </Grupo>
         </div>
-        {di && (
-          <p className="mt-3 text-[13px] text-slate-500">
-            Z<sub>R</sub> = <span className="font-mono">{num(di.zr, 3)}</span>
-            {di.etapas > 1 && <> · confiabilidad por etapa R<sup>1/{di.etapas}</sup> = <span className="font-mono">{pct(di.r_etapa, 2)}</span></>}
-          </p>
-        )}
       </Tarjeta>
 
       <Tarjeta titulo="Materiales" sub="Coeficientes estructurales a partir del módulo de cada material (o ingresados directamente).">
@@ -112,7 +147,7 @@ export default function Diseno() {
           <Granular titulo="Base granular" clave="base" color="bg-base" />
           <Granular titulo="Subbase granular" clave="subbase" color="bg-subbase" />
         </div>
-        <AsistenteDrenaje />
+        <Drenaje />
       </Tarjeta>
 
       <Tarjeta titulo="Criterios de redondeo y espesores mínimos">
@@ -267,7 +302,7 @@ function Granular({ titulo, clave, color }: { titulo: string; clave: 'base' | 's
           ? <CampoNumero etiqueta="CBR (%)" ayuda="El módulo se estima con la correlación de Cabezas (2006)." valor={c.cbr} dec={1}
             alCambiar={(v) => editar((p) => { p.diseno[clave].cbr = v })} />
           : <CampoNumero etiqueta="E (psi)" valor={c.e_psi} dec={0} alCambiar={(v) => editar((p) => { p.diseno[clave].e_psi = v })} />}
-        <CampoNumero etiqueta={`m${clave === 'base' ? '₂' : '₃'} (drenaje)`} ayuda="Coeficiente de drenaje (AASHTO, tabla 2.4). Usá el asistente de abajo." valor={c.m} min={0.4} max={1.4}
+        <CampoNumero etiqueta={`m${clave === 'base' ? '₂' : '₃'} (drenaje)`} ayuda="Coeficiente de drenaje. Se completa con las tablas 4.12 y 4.13 de abajo, o a mano." valor={c.m} min={0.4} max={1.4}
           alCambiar={(v) => editar((p) => { p.diseno[clave].m = v ?? 1 })} />
       </div>
       <CoefDirecto capa={c} etiqueta={clave === 'base' ? 'a₂' : 'a₃'} alCambiar={(a) => editar((p) => { p.diseno[clave].a = a })} />
@@ -288,51 +323,85 @@ function CoefDirecto({ capa, etiqueta, alCambiar }: { capa: Capa; etiqueta: stri
   )
 }
 
-function AsistenteDrenaje() {
+function Drenaje() {
+  const p = useProyecto()
+  const d = p.diseno
   const editar = useApp((s) => s.editar)
-  const [sel, setSel] = useState<[number, number] | null>(null)
-  const rango = sel ? TABLA_M[sel[0]][2][sel[1]] : null
-  const medio = rango ? Math.round(((rango[0] + rango[1]) / 2) * 100) / 100 : null
+  const fila = d.drenaje_calidad ?? null
+  const col = d.drenaje_saturacion ?? null
+  const rango = fila != null && col != null ? TABLA_M[fila][2][col] : null
+  const elegir = (f: number | null, c: number | null) => editar((p) => {
+    p.diseno.drenaje_calidad = f
+    p.diseno.drenaje_saturacion = c
+    if (f != null && c != null) {
+      const [hi, lo] = TABLA_M[f][2][c]
+      const m = Math.round(((hi + lo) / 2) * 100) / 100
+      p.diseno.base.m = m
+      p.diseno.subbase.m = m
+    }
+  })
   return (
-    <details className="group mt-5 rounded-xl border border-slate-200">
-      <summary className="cursor-pointer list-none px-4 py-3 text-[14px] font-medium text-slate-700">
-        🧭 Asistente de drenaje · tabla 2.4 de AASHTO <span className="text-slate-400">— elegí la celda que describe tu caso</span>
-      </summary>
-      <div className="border-t border-slate-100 p-4">
-        <Tabla>
-          <thead>
-            <tr>
-              <th className={th}>Calidad del drenaje<br /><span className="font-normal normal-case">(tiempo en eliminar el agua)</span></th>
-              {EXPOSICION.map((e) => <th key={e} className={cx(th, 'text-center')}>{e}<br /><span className="font-normal normal-case">del tiempo saturada</span></th>)}
-            </tr>
-          </thead>
-          <tbody>
-            {TABLA_M.map(([cal, t, fila], i) => (
-              <tr key={cal}>
-                <td className={td}><b className="font-medium">{cal}</b> <span className="text-slate-400">({t})</span></td>
-                {fila.map(([hi, lo], j) => (
-                  <td key={j} className={cx(td, 'p-1 text-center')}>
-                    <button onClick={() => setSel([i, j])}
-                      className={cx('w-full rounded-md py-1.5 font-mono text-[13px] transition',
-                        sel?.[0] === i && sel?.[1] === j ? 'bg-acento-500 text-slate-950' : 'hover:bg-acento-50')}>
-                      {hi === lo ? num(hi, 2) : `${num(lo, 2)} – ${num(hi, 2)}`}
-                    </button>
-                  </td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </Tabla>
-        {medio != null && (
-          <div className="mt-3 flex flex-wrap items-center gap-2 text-[13.5px] text-slate-700">
-            Valor medio del rango: <b className="font-mono">m = {num(medio, 2)}</b> → aplicar a
-            <Boton tamano="sm" onClick={() => editar((p) => { p.diseno.base.m = medio })}>base</Boton>
-            <Boton tamano="sm" onClick={() => editar((p) => { p.diseno.subbase.m = medio })}>subbase</Boton>
-            <Boton tamano="sm" variante="oscuro" onClick={() => editar((p) => { p.diseno.base.m = medio; p.diseno.subbase.m = medio })}>ambas</Boton>
-          </div>
-        )}
-        <div className="mt-3"><Latex bloque={false} tex="SN = a_1 D_1 + a_2 \, m_2 D_2 + a_3 \, m_3 D_3" /></div>
+    <div className="mt-5 rounded-xl border border-slate-200 p-4">
+      <div className="mb-3 text-[14px] font-semibold text-slate-800">Drenaje de base y subbase (m₂, m₃)</div>
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-[1.3fr_1.3fr_1fr]">
+        <CampoSelector etiqueta="Calidad del drenaje (tabla 4.12)" valor={fila ?? -1}
+          opciones={[{ valor: -1, etiqueta: 'Elegir…' }, ...TABLA_M.map(([cal, t], i) => ({ valor: i, etiqueta: `${cal} (agua eliminada en ${t})` }))]}
+          alCambiar={(v) => elegir(v < 0 ? null : v, col)} />
+        <CampoSelector etiqueta="% del tiempo cerca de la saturación" valor={col ?? -1}
+          opciones={[{ valor: -1, etiqueta: 'Elegir…' }, ...EXPOSICION.map((e, i) => ({ valor: i, etiqueta: e }))]}
+          alCambiar={(v) => elegir(fila, v < 0 ? null : v)} />
+        <div className="rounded-lg bg-slate-50 px-3 py-2 text-[13px] text-slate-600">
+          {rango
+            ? <>Tabla 4.13: <b className="font-mono">{rango[0] === rango[1] ? num(rango[0], 2) : `${num(rango[1], 2)} – ${num(rango[0], 2)}`}</b><br />se adopta el valor medio en m₂ y m₃</>
+            : 'Elegí las dos condiciones para obtener m de la tabla 4.13.'}
+        </div>
       </div>
-    </details>
+      <details className="mt-3">
+        <summary className="cursor-pointer text-[13px] text-slate-500 hover:text-slate-800">Ver la tabla 4.13 completa (también se puede elegir tocando una celda)</summary>
+        <div className="mt-2">
+          <Tabla>
+            <thead>
+              <tr>
+                <th className={th}>Calidad del drenaje<br /><span className="font-normal normal-case">(tiempo en eliminar el agua)</span></th>
+                {EXPOSICION.map((e) => <th key={e} className={cx(th, 'text-center')}>{e}<br /><span className="font-normal normal-case">del tiempo saturada</span></th>)}
+              </tr>
+            </thead>
+            <tbody>
+              {TABLA_M.map(([cal, t, filaM], i) => (
+                <tr key={cal}>
+                  <td className={td}><b className="font-medium">{cal}</b> <span className="text-slate-400">({t})</span></td>
+                  {filaM.map(([hi, lo], j) => (
+                    <td key={j} className={cx(td, 'p-1 text-center')}>
+                      <button onClick={() => elegir(i, j)}
+                        className={cx('w-full rounded-md py-1.5 font-mono text-[13px] transition',
+                          fila === i && col === j ? 'bg-acento-500 text-slate-950' : 'hover:bg-acento-50')}>
+                        {hi === lo ? num(hi, 2) : `${num(lo, 2)} – ${num(hi, 2)}`}
+                      </button>
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </Tabla>
+          <p className="mt-2 text-[12.5px] text-slate-500">AASHTO 93, Parte II, tabla 2.4. m multiplica el aporte de las capas granulares: SN = a₁D₁ + a₂m₂D₂ + a₃m₃D₃.</p>
+        </div>
+      </details>
+    </div>
   )
+}
+
+/** Recuadro gris: atajo con tabla + valor editable. */
+function Grupo({ children, columnas }: { children: ReactNode; columnas: string }) {
+  return <div className={cx('grid gap-3 rounded-xl bg-slate-50 p-3 ring-1 ring-slate-200/70', columnas)}>{children}</div>
+}
+
+function Pista({ children }: { children: ReactNode }) {
+  return <p className="mt-1 text-[11.5px] leading-tight text-slate-500">{children}</p>
+}
+
+/** Escribe en R el valor central (redondeado a 5) del rango de la tabla 4.3 para el tipo de vía y la zona. */
+function aplicarR(d: { tipo_via?: string | null; zona?: string | null; r_pct: number }) {
+  if (!d.tipo_via || !TABLA_R[d.tipo_via]) return
+  const [a, b] = TABLA_R[d.tipo_via][(d.zona ?? 'rural') as 'urbana' | 'rural']
+  d.r_pct = Math.min(b, Math.max(a, Math.round((a + b) / 2 / 5) * 5))
 }

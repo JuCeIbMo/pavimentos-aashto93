@@ -242,8 +242,20 @@
     "subrasante": {
       "periodos": [
         {
-          "nombre": "Ene–Mar",
-          "meses": 3,
+          "nombre": "Enero",
+          "meses": 1,
+          "cbr": null,
+          "mr": 7050
+        },
+        {
+          "nombre": "Febrero",
+          "meses": 1,
+          "cbr": null,
+          "mr": 7050
+        },
+        {
+          "nombre": "Marzo",
+          "meses": 1,
           "cbr": null,
           "mr": 7050
         },
@@ -254,18 +266,55 @@
           "mr": 10050
         },
         {
-          "nombre": "May, Nov, Dic",
-          "meses": 3,
+          "nombre": "Mayo",
+          "meses": 1,
           "cbr": null,
           "mr": 11965
         },
         {
-          "nombre": "Jun–Oct",
-          "meses": 5,
+          "nombre": "Junio",
+          "meses": 1,
           "cbr": null,
           "mr": 15972
+        },
+        {
+          "nombre": "Julio",
+          "meses": 1,
+          "cbr": null,
+          "mr": 15972
+        },
+        {
+          "nombre": "Agosto",
+          "meses": 1,
+          "cbr": null,
+          "mr": 15972
+        },
+        {
+          "nombre": "Septiembre",
+          "meses": 1,
+          "cbr": null,
+          "mr": 15972
+        },
+        {
+          "nombre": "Octubre",
+          "meses": 1,
+          "cbr": null,
+          "mr": 15972
+        },
+        {
+          "nombre": "Noviembre",
+          "meses": 1,
+          "cbr": null,
+          "mr": 11965
+        },
+        {
+          "nombre": "Diciembre",
+          "meses": 1,
+          "cbr": null,
+          "mr": 11965
         }
-      ]
+      ],
+      "dato": "mr"
     },
     "diseno": {
       "r_pct": 85,

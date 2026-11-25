@@ -57,6 +57,10 @@ export interface Diseno {
   min_carpeta: number
   min_base: number
   min_subbase: number
+  tipo_via?: string | null
+  zona?: string | null
+  drenaje_calidad?: number | null
+  drenaje_saturacion?: number | null
 }
 
 export interface Helada {
@@ -80,7 +84,7 @@ export interface Proyecto {
   ubicacion: string
   descripcion: string
   transito: Transito
-  subrasante: { periodos: Periodo[] }
+  subrasante: { periodos: Periodo[]; dato?: 'cbr' | 'mr' }
   diseno: Diseno
   clima: Clima
 }

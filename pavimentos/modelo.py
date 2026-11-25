@@ -54,9 +54,16 @@ class Periodo:
     mr: float | None = None           # M_R directo (psi); tiene prioridad sobre CBR
 
 
+MESES = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto",
+         "Septiembre", "Octubre", "Noviembre", "Diciembre"]
+
+
 @dataclass
 class Subrasante:
-    periodos: list = field(default_factory=list)
+    # un período por mes (la interfaz trabaja con los 12 meses; el motor acepta cualquier
+    # partición del año que sume 12 meses, como la de algunos ejercicios resueltos)
+    periodos: list = field(default_factory=lambda: [Periodo(nombre=m) for m in MESES])
+    dato: str = "cbr"                 # qué se carga por mes en la interfaz: "cbr" | "mr"
 
 
 @dataclass
@@ -89,6 +96,11 @@ class Diseno:
     min_carpeta: float = 0.0          # en la unidad elegida (solo si minimos == "personalizado")
     min_base: float = 0.0
     min_subbase: float = 0.0
+    # Selecciones de los atajos de la interfaz (solo para mostrarlas; el cálculo usa r_pct, so, pt y m)
+    tipo_via: str | None = None       # "autopista" | "arteria" | "colectora" | "local"
+    zona: str | None = None           # "urbana" | "rural"
+    drenaje_calidad: int | None = None      # fila de la tabla de drenaje (0 = excelente … 4 = muy mala)
+    drenaje_saturacion: int | None = None   # columna (% del tiempo cerca de la saturación)
 
 
 @dataclass

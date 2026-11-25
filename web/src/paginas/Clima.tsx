@@ -24,7 +24,7 @@ export default function Clima() {
 
   return (
     <div className="space-y-6">
-      <Encabezado num="06" titulo="Ajuste de la vida útil por clima" sub="Suelos expansivos y heladas: cuánto acortan la vida del pavimento." />
+      <Encabezado num="6" titulo="Ajuste de la vida útil por clima" sub="Suelos expansivos y heladas: cuánto acortan la vida del pavimento." />
 
       <Concepto titulo="¿Cómo afecta el clima a la vida útil?">
         <p>El tránsito no es lo único que gasta la serviciabilidad. Una <strong>arcilla expansiva</strong> que se hincha, o una subrasante que

@@ -180,16 +180,18 @@ def _resolver_subrasante(p: ProyectoFlexible, reg: _Registro) -> dict | None:
     per = p.subrasante.periodos
     if not per:
         return None
+    vacios = [x.nombre for x in per if x.mr is None and x.cbr is None]
+    if vacios:
+        reg.aviso("subrasante", ("Falta CBR o M_R en: " + ", ".join(vacios) + "."
+                                 if len(vacios) < len(per) else "Cargá el CBR o el M_R de cada mes."), "error")
+        return None
     filas = []
     for x in per:
         try:
             if x.mr is not None:
                 mr, origen = float(x.mr), "dato"
-            elif x.cbr is not None:
-                mr, origen = mr_de_cbr(float(x.cbr)), ("1500·CBR" if x.cbr < 7.2 else "3000·CBR^0,65")
             else:
-                reg.aviso("subrasante", f"{x.nombre}: falta CBR o M_R.", "error")
-                return None
+                mr, origen = mr_de_cbr(float(x.cbr)), ("1500·CBR" if x.cbr < 7.2 else "3000·CBR^0,65")
         except ErrorMR as e:
             reg.aviso("subrasante", f"{x.nombre}: {e}", "error")
             return None

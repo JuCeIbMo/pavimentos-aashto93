@@ -237,30 +237,79 @@
   "subrasante": {
     "periodos": [
       {
-        "nombre": "Ene–Mar",
-        "meses": 3,
-        "cbr": null,
-        "mr": 7050
+        "nombre": "Enero",
+        "meses": 1,
+        "cbr": 4.7,
+        "mr": null
+      },
+      {
+        "nombre": "Febrero",
+        "meses": 1,
+        "cbr": 4.7,
+        "mr": null
+      },
+      {
+        "nombre": "Marzo",
+        "meses": 1,
+        "cbr": 4.7,
+        "mr": null
       },
       {
         "nombre": "Abril",
         "meses": 1,
-        "cbr": null,
-        "mr": 10050
+        "cbr": 6.7,
+        "mr": null
       },
       {
-        "nombre": "May, Nov, Dic",
-        "meses": 3,
-        "cbr": null,
-        "mr": 11965
+        "nombre": "Mayo",
+        "meses": 1,
+        "cbr": 8.4,
+        "mr": null
       },
       {
-        "nombre": "Jun–Oct",
-        "meses": 5,
-        "cbr": null,
-        "mr": 15972
+        "nombre": "Junio",
+        "meses": 1,
+        "cbr": 13.1,
+        "mr": null
+      },
+      {
+        "nombre": "Julio",
+        "meses": 1,
+        "cbr": 13.1,
+        "mr": null
+      },
+      {
+        "nombre": "Agosto",
+        "meses": 1,
+        "cbr": 13.1,
+        "mr": null
+      },
+      {
+        "nombre": "Septiembre",
+        "meses": 1,
+        "cbr": 13.1,
+        "mr": null
+      },
+      {
+        "nombre": "Octubre",
+        "meses": 1,
+        "cbr": 13.1,
+        "mr": null
+      },
+      {
+        "nombre": "Noviembre",
+        "meses": 1,
+        "cbr": 8.4,
+        "mr": null
+      },
+      {
+        "nombre": "Diciembre",
+        "meses": 1,
+        "cbr": 8.4,
+        "mr": null
       }
-    ]
+    ],
+    "dato": "cbr"
   },
   "diseno": {
     "r_pct": 85,
@@ -275,19 +324,19 @@
     "carpeta": {
       "e_psi": 425000,
       "cbr": null,
-      "a": 0.428,
+      "a": null,
       "m": 1.0
     },
     "base": {
-      "e_psi": 28143,
-      "cbr": null,
-      "a": 0.131,
+      "e_psi": null,
+      "cbr": 80,
+      "a": null,
       "m": 1.0
     },
     "subbase": {
-      "e_psi": 16199,
-      "cbr": null,
-      "a": 0.117,
+      "e_psi": null,
+      "cbr": 40,
+      "a": null,
       "m": 1.0
     },
     "paso_sn": 0.1,

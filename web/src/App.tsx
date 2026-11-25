@@ -45,11 +45,11 @@ function Sidebar() {
       <button key={it.id} onClick={() => ir(it.id)}
         className={cx('group flex w-full items-center gap-3 rounded-lg px-3 py-2 text-left text-[14px] transition',
           activo ? 'bg-white/10 text-white' : 'text-slate-400 hover:bg-white/5 hover:text-slate-200')}>
-        <span className={cx('grid h-7 w-7 place-items-center rounded-md', activo ? 'bg-acento-500 text-slate-950' : 'bg-white/5 text-slate-400 group-hover:text-slate-200')}>
+        <span className={cx('grid h-7 w-7 place-items-center', activo ? 'text-acento-400' : 'text-slate-500 group-hover:text-slate-300')}>
           {it.icono}
         </span>
         <span className="flex-1">
-          {it.num && <span className="mr-1.5 font-mono text-[12px] text-slate-500">{it.num}</span>}
+          {it.num && <span className="num mr-1.5 text-[13px] text-slate-500">{it.num}</span>}
           {it.titulo}
         </span>
         {est === true && <CheckCircle2 className="h-4 w-4 text-emerald-400" />}
@@ -72,12 +72,12 @@ function Sidebar() {
       </button>
       <nav className="space-y-0.5">
         {enlace({ id: 'inicio', titulo: 'Inicio', icono: <House className="h-4 w-4" /> })}
-        <div className="px-3 pb-1.5 pt-5 text-[11px] font-semibold uppercase tracking-wider text-slate-600">Módulos de cálculo</div>
+        <div className="px-3 pb-1.5 pt-5 text-[12px] font-medium text-slate-500">Módulos de cálculo</div>
         {MODULOS.map(enlace)}
-        <div className="px-3 pb-1.5 pt-5 text-[11px] font-semibold uppercase tracking-wider text-slate-600">Herramientas</div>
+        <div className="px-3 pb-1.5 pt-5 text-[12px] font-medium text-slate-500">Herramientas</div>
         {HERRAMIENTAS.map(enlace)}
       </nav>
-      <div className="mt-auto rounded-xl bg-white/5 p-3 text-[12px] leading-relaxed text-slate-400">
+      <div className="mt-auto px-3 text-[12px] leading-relaxed text-slate-500">
         Carreteras II · Proyecto final
         <br />
         Método AASHTO 1993
@@ -109,7 +109,7 @@ function BarraSuperior() {
   }
 
   return (
-    <div className="sticky top-0 z-10 border-b border-slate-200 bg-white/85 backdrop-blur">
+    <div className="sticky top-0 z-10 border-b border-slate-200 bg-white">
       <div className="mx-auto flex h-14 max-w-[1400px] items-center gap-4 px-8">
         <div className="min-w-0 flex-1">
           <div className="truncate text-[14px] font-semibold text-slate-900">{p.nombre || 'Proyecto sin título'}</div>

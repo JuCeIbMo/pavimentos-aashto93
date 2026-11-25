@@ -13,6 +13,7 @@ import math
 
 from pavimentos.ambiental import DatosInvalidos as ErrorAmbiental
 from pavimentos.ambiental import periodo_desempeno
+from pavimentos.formato import g, num
 from pavimentos.flexible import coef_a1, coef_a2, coef_a3, log_w18, r_etapa, sn_requerido, zr_de_r
 from pavimentos.lef import DatosInvalidos as ErrorLEF
 from pavimentos.lef import cargar_lef, lef_eje
@@ -89,7 +90,7 @@ def _resolver_transito(p: ProyectoFlexible, reg: _Registro) -> dict | None:
         reg.aviso("transito", "Fd y Fc deben estar entre 0 y 1.", "error")
         return None
     if tr.fd not in (0.5, 1.0) and not (0.3 <= tr.fd <= 0.7):
-        reg.aviso("transito", f"Fd = {tr.fd} es inusual: AASHTO recomienda 0,3–0,7 (normalmente 0,5).")
+        reg.aviso("transito", f"Fd = {g(tr.fd)} es inusual: AASHTO recomienda 0,3–0,7 (normalmente 0,5).")
     tablas = tablas_lef()
     filas = []
     for v in tr.vehiculos:
@@ -167,7 +168,7 @@ def _resolver_subrasante(p: ProyectoFlexible, reg: _Registro) -> dict | None:
                       "origen": origen, "uf": uf, "uf_meses": uf * float(x.meses)})
     meses = sum(f["meses"] for f in filas)
     if abs(meses - 12.0) > 1e-6:
-        reg.aviso("subrasante", f"Los períodos deben cubrir 12 meses (suman {meses:g}).", "error")
+        reg.aviso("subrasante", f"Los períodos deben cubrir 12 meses (suman {g(meses)}).", "error")
         return None
     suma = sum(f["uf_meses"] for f in filas)
     uf_bar = suma / 12.0
@@ -177,10 +178,10 @@ def _resolver_subrasante(p: ProyectoFlexible, reg: _Registro) -> dict | None:
         reg.aviso("subrasante", "La variación estacional de M_R es muy grande (máx/mín > 5): "
                   "verificá los datos (puede ser correcto si hay congelamiento).", "info")
     reg.decision("subrasante",
-                 f"Se adopta M_R efectivo = {mr_ef:,.0f} psi, el valor que produce el mismo daño "
-                 f"anual que la variación estacional (ū_f = {uf_bar:.4f}). Es menor que el promedio "
-                 f"aritmético ({sum(f['mr'] * f['meses'] for f in filas) / 12:,.0f} psi) porque los "
-                 f"meses débiles dañan mucho más.".replace(",", "."))
+                 f"Se adopta M_R efectivo = {num(mr_ef, 0)} psi, el valor que produce el mismo daño "
+                 f"anual que la variación estacional (ū_f = {num(uf_bar, 4)}). Es menor que el promedio "
+                 f"aritmético ({num(sum(f['mr'] * f['meses'] for f in filas) / 12, 0)} psi) porque los "
+                 f"meses débiles dañan mucho más.")
     return {"filas": filas, "suma_uf": suma, "uf_bar": uf_bar, "mr_efectivo": mr_ef,
             "mr_promedio": sum(f["mr"] * f["meses"] for f in filas) / 12.0}
 
@@ -201,8 +202,8 @@ def _materiales(p: ProyectoFlexible, reg: _Registro) -> dict | None:
     else:
         a1, o1 = coef_a1(e1), "0,17·ln(E_CA) − 1,7754"
         if not (100_000 <= e1 <= 600_000):
-            reg.aviso("diseno", f"E_CA = {e1:,.0f} psi fuera del rango usual de la correlación "
-                      "(≈ 100.000–450.000 psi).".replace(",", "."))
+            reg.aviso("diseno", f"E_CA = {num(e1, 0)} psi fuera del rango usual de la correlación "
+                      "(≈ 100.000–450.000 psi).")
     out["carpeta"] = {"e": e1, "a": a1, "origen_a": o1, "origen_e": "dato"}
 
     for nombre, capa, fe, fa, txt_e, txt_a in (
@@ -229,7 +230,7 @@ def _materiales(p: ProyectoFlexible, reg: _Registro) -> dict | None:
             reg.aviso("diseno", f"El coeficiente a de la {nombre} resultó ≤ 0.", "error")
             return None
         if not (0.4 <= capa.m <= 1.4):
-            reg.aviso("diseno", f"m de la {nombre} = {capa.m} fuera del rango AASHTO (0,40–1,40).")
+            reg.aviso("diseno", f"m de la {nombre} = {g(capa.m)} fuera del rango AASHTO (0,40–1,40).")
         out[nombre] = {"e": e, "a": a, "m": capa.m, "origen_a": oa, "origen_e": oe, "cbr": capa.cbr}
     if out["base"]["e"] is None or out["subbase"]["e"] is None:
         reg.aviso("diseno", "Para el diseño por capas hace falta el módulo E de base y subbase "
@@ -254,8 +255,7 @@ def _espesores(w, zr, so, dpsi, mr, mat, d, reg: _Registro) -> dict:
         mca, mb = minimos_aashto(w)
         mins = (redondear_arriba(a_unidad(mca), d.paso_espesor),
                 redondear_arriba(a_unidad(mb), d.paso_espesor), 0.0)
-        origen_min = (f"tabla AASHTO para W18 = {w:,.0f}: carpeta {mca:g}\", base {mb:g}\""
-                      .replace(",", "."))
+        origen_min = (f"tabla AASHTO para W18 = {num(w, 0)}: carpeta {g(mca)}\", base {g(mb)}\"")
     elif d.minimos == "personalizado":
         mins = (d.min_carpeta, d.min_base, d.min_subbase)
         origen_min = "mínimos constructivos definidos por el proyectista"
@@ -292,7 +292,7 @@ def _espesores(w, zr, so, dpsi, mr, mat, d, reg: _Registro) -> dict:
         gobierna.append("carpeta")
     if d2 > redondear_arriba(d2_calc, d.paso_espesor):
         gobierna.append("base")
-    reg.decision("diseno", f"Espesores redondeados hacia arriba a {d.paso_espesor:g} {u}; mínimos: {origen_min}.")
+    reg.decision("diseno", f"Espesores redondeados hacia arriba a {g(d.paso_espesor)} {u}; mínimos: {origen_min}.")
     if gobierna:
         reg.decision("diseno", f"En {' y '.join(gobierna)} gobierna el espesor mínimo, no el cálculo.")
     if falta2 <= 0:
@@ -339,16 +339,16 @@ def resolver(p: ProyectoFlexible) -> dict:
 
     # 4) Parámetros de diseño
     if d.fuente_w18 == "dato":
-        w18, fuente_w = d.w18_dato, "dato del proyecto"
+        w18, fuente_w = d.w18_dato, "un dato del proyecto"
     else:
-        w18, fuente_w = (tr["w18"] if tr else None), "módulo 1 (tránsito)"
+        w18, fuente_w = (tr["w18"] if tr else None), "el módulo 1 (tránsito)"
     if not w18 or w18 <= 0:
         reg.aviso("diseno", "Falta el tránsito de diseño W18: calculalo en el módulo 1 o ingresalo como dato.", "error")
         return _cerrar(res, reg)
     if d.fuente_mr == "dato":
-        mr, fuente_mr = d.mr_dato, "dato del proyecto"
+        mr, fuente_mr = d.mr_dato, "un dato del proyecto"
     else:
-        mr, fuente_mr = (sub["mr_efectivo"] if sub else None), "módulo 2 (subrasante)"
+        mr, fuente_mr = (sub["mr_efectivo"] if sub else None), "el módulo 2 (subrasante)"
     if not mr or mr <= 0:
         reg.aviso("diseno", "Falta el M_R efectivo: calculalo en el módulo 2 o ingresalo como dato.", "error")
         return _cerrar(res, reg)
@@ -363,30 +363,30 @@ def resolver(p: ProyectoFlexible) -> dict:
         reg.aviso("diseno", "ΔPSI = p0 − pt debe ser positivo.", "error")
         return _cerrar(res, reg)
     if not (0.30 <= d.so <= 0.50):
-        reg.aviso("diseno", f"So = {d.so} fuera del rango AASHTO para flexibles (0,40–0,50).")
+        reg.aviso("diseno", f"So = {g(d.so)} fuera del rango AASHTO para flexibles (0,40–0,50).")
     elif not (0.40 <= d.so <= 0.50):
-        reg.aviso("diseno", f"So = {d.so}: AASHTO recomienda 0,40–0,50 para flexibles.", "info")
+        reg.aviso("diseno", f"So = {g(d.so)}: AASHTO recomienda 0,40–0,50 para flexibles.", "info")
     if d.p0 > 4.6 or d.pt < 1.5:
         reg.aviso("diseno", "p0 > 4,6 o pt < 1,5 están fuera de los valores habituales.")
     usa_ejes = bool(tr) and any(f["origen_fc"] == "ejes" for f in tr["filas"])
     if usa_ejes and abs(tr["pt_lef"] - d.pt) > 1e-9:
-        reg.aviso("transito", f"Los LEF se calcularon con pt = {tr['pt_lef']:g} y el diseño usa pt = {d.pt:g}: "
+        reg.aviso("transito", f"Los LEF se calcularon con pt = {g(tr['pt_lef'])} y el diseño usa pt = {g(d.pt)}: "
                   "conviene usar el mismo valor.", "info")
 
     if d.etapas > 1:
         reg.decision("diseno", f"Construcción por {d.etapas} etapas: la confiabilidad de cada etapa es "
-                     f"R^(1/{d.etapas}) = {r_et:.1f} % para que el conjunto cumpla R = {d.r_pct:g} %.")
+                     f"R^(1/{d.etapas}) = {num(r_et, 1)} % para que el conjunto cumpla R = {g(d.r_pct)} %.")
     reg.decision("diseno", f"W18 de diseño tomado de {fuente_w}; M_R de {fuente_mr}.")
 
     so = d.so
     sn_req = sn_requerido(w18, zr, so, dpsi, mr)
     sn_adop = redondear_arriba(sn_req, d.paso_sn) if d.paso_sn > 0 else sn_req
     if d.paso_sn > 0:
-        reg.decision("diseno", f"SN requerido = {sn_req:.3f}; se adopta SN = {sn_adop:.2f} "
-                     f"(redondeo hacia arriba a {d.paso_sn:g}).")
+        reg.decision("diseno", f"SN requerido = {num(sn_req, 3)}; se adopta SN = {num(sn_adop, 2)} "
+                     f"(redondeo hacia arriba a {g(d.paso_sn)}).")
     if usa_ejes and abs(tr["sn_lef"] - sn_adop) > 0.5:
-        reg.aviso("transito", f"Los LEF se calcularon con SN supuesto = {tr['sn_lef']:g}, pero el SN "
-                  f"resultante es {sn_adop:.1f}. Conviene repetir el módulo 1 con un SN más cercano.")
+        reg.aviso("transito", f"Los LEF se calcularon con SN supuesto = {g(tr['sn_lef'])}, pero el SN "
+                  f"resultante es {num(sn_adop, 1)}. Conviene repetir el módulo 1 con un SN más cercano.")
 
     mat = _materiales(p, reg)
     if mat is None:
@@ -421,13 +421,12 @@ def resolver(p: ProyectoFlexible) -> dict:
                 w_dis, dpsi_dis = amb["w_adm"], amb["dpsi_tr"]
                 if amb["periodo"] < tr["n"] - 0.05:
                     reg.decision("clima",
-                                 f"Por efectos ambientales el pavimento rinde {amb['periodo']:.1f} años en lugar de "
-                                 f"{tr['n']:g}: hay que prever una rehabilitación (recapado) a esa edad o "
+                                 f"Por efectos ambientales el pavimento rinde {num(amb['periodo'], 1)} años en lugar de "
+                                 f"{g(tr['n'])}: hay que prever una rehabilitación (recapado) a esa edad o "
                                  f"aumentar el SN.")
                 reg.decision("clima",
-                             f"Los espesores se diseñan con el tránsito admisible W = {amb['w_adm']:,.0f} y la "
-                             f"pérdida de serviciabilidad remanente para tránsito ΔPSI_TR = {amb['dpsi_tr']:.3f}."
-                             .replace(",", "."))
+                             f"Los espesores se diseñan con el tránsito admisible W = {num(amb['w_adm'], 0)} y la "
+                             f"pérdida de serviciabilidad remanente para tránsito ΔPSI_TR = {num(amb['dpsi_tr'], 3)}.")
             except ErrorAmbiental as e:
                 reg.aviso("clima", str(e), "error")
 

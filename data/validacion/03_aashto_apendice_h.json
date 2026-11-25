@@ -1,0 +1,212 @@
+{
+  "fuente": {
+    "titulo": "Ejemplo de diseño — Apéndice H",
+    "tipo": "Bibliografía (guía oficial)",
+    "referencia": "AASHTO (1993). Guide for Design of Pavement Structures, Apéndice H; traducido en el avance 1, págs. 53–62"
+  },
+  "proyecto": {
+    "nombre": "AASHTO 93 — Apéndice H (ejemplo de diseño flexible)",
+    "autor": "",
+    "ubicacion": "",
+    "descripcion": "Autopista estatal de 6 carriles, construcción por etapas, arcilla expansiva y drenaje bueno.",
+    "transito": {
+      "n": 15,
+      "fd": 0.5,
+      "fc": 0.8,
+      "pt": 2.5,
+      "sn_lef": 5.0,
+      "vehiculos": [
+        {
+          "nombre": "ESAL 1er año (ambos sentidos)",
+          "tpda": 6849.315068493151,
+          "r": 0.03,
+          "pesado": true,
+          "ejes": [],
+          "factor_camion": 1.0
+        }
+      ]
+    },
+    "subrasante": {
+      "periodos": [
+        {
+          "nombre": "Congelado (med. ene – med. feb)",
+          "meses": 1.0,
+          "cbr": null,
+          "mr": 20000
+        },
+        {
+          "nombre": "Deshielo primaveral (med. feb – mar)",
+          "meses": 0.5,
+          "cbr": null,
+          "mr": 4000
+        },
+        {
+          "nombre": "Húmedo (mar–may, med. sep – med. nov)",
+          "meses": 5.0,
+          "cbr": null,
+          "mr": 5000
+        },
+        {
+          "nombre": "Seco (jun – med. sep, med. nov – med. ene)",
+          "meses": 5.5,
+          "cbr": null,
+          "mr": 6500
+        }
+      ]
+    },
+    "diseno": {
+      "r_pct": 95,
+      "etapas": 1,
+      "so": 0.35,
+      "p0": 4.6,
+      "pt": 2.5,
+      "fuente_w18": "calculado",
+      "w18_dato": null,
+      "fuente_mr": "calculado",
+      "mr_dato": null,
+      "carpeta": {
+        "e_psi": 400000,
+        "cbr": null,
+        "a": 0.42,
+        "m": 1.0
+      },
+      "base": {
+        "e_psi": 30000,
+        "cbr": null,
+        "a": 0.14,
+        "m": 1.2
+      },
+      "subbase": {
+        "e_psi": 11000,
+        "cbr": null,
+        "a": 0.08,
+        "m": 1.2
+      },
+      "paso_sn": 0.1,
+      "unidad": "pulg",
+      "paso_espesor": 0.5,
+      "minimos": "ninguno",
+      "min_carpeta": 0.0,
+      "min_base": 0.0,
+      "min_subbase": 0.0
+    },
+    "clima": {
+      "activo": true,
+      "hinchamiento": true,
+      "vr": 1.2,
+      "ps": 84,
+      "theta": 0.075,
+      "helada": null
+    }
+  },
+  "esperados": [
+    {
+      "clave": "transito.w18",
+      "etiqueta": "W18 a 15 años (carril de diseño)",
+      "valor": 18600000.0,
+      "tol_rel": 0.005,
+      "unidad": "ESAL",
+      "nota": "",
+      "tipo": "exacto"
+    },
+    {
+      "clave": "subrasante.mr_efectivo",
+      "etiqueta": "M_R efectivo",
+      "valor": 5712,
+      "tol_rel": 0.005,
+      "unidad": "psi",
+      "nota": "",
+      "tipo": "exacto"
+    },
+    {
+      "clave": "diseno.sn_requerido",
+      "etiqueta": "SN requerido (nomograma: 5,545)",
+      "valor": 5.545,
+      "tol_rel": 0.005,
+      "unidad": "",
+      "nota": "La guía usa R = 95 % por etapa (90 % global en 2 etapas).",
+      "tipo": "exacto"
+    },
+    {
+      "clave": "diseno.sn_adoptado",
+      "etiqueta": "SN adoptado",
+      "valor": 5.6,
+      "tol_rel": 0.001,
+      "unidad": "",
+      "nota": "",
+      "tipo": "exacto"
+    },
+    {
+      "clave": "clima.periodo",
+      "etiqueta": "Período de desempeño con hinchamiento",
+      "valor": 13.0,
+      "tol_rel": 0.05,
+      "unidad": "años",
+      "nota": "Criterio AASHTO: se converge cuando el período de prueba y el calculado difieren < 1 año. La guía prueba 13 años (calcula 13,2) y adopta 13; la app parte de 15 → 14,0 (calcula 13,1) y adopta el promedio, como en la cátedra. Ambos cumplen el criterio.",
+      "tipo": "exacto"
+    },
+    {
+      "clave": "clima.iteraciones.-1.t_calc",
+      "etiqueta": "Período calculado en la última iteración",
+      "valor": 13.2,
+      "tol_rel": 0.01,
+      "unidad": "años",
+      "nota": "Tabla H2 de la guía.",
+      "tipo": "exacto"
+    },
+    {
+      "clave": "clima.w_adm",
+      "etiqueta": "W admisible",
+      "valor": 16000000.0,
+      "tol_rel": 0.02,
+      "unidad": "ESAL",
+      "nota": "",
+      "tipo": "exacto"
+    },
+    {
+      "clave": "capas.sn1",
+      "etiqueta": "SN1 (nomograma)",
+      "valor": 3.2,
+      "tol_rel": 0.02,
+      "unidad": "",
+      "nota": "",
+      "tipo": "exacto"
+    },
+    {
+      "clave": "capas.sn2",
+      "etiqueta": "SN2 (nomograma)",
+      "valor": 4.5,
+      "tol_rel": 0.02,
+      "unidad": "",
+      "nota": "",
+      "tipo": "exacto"
+    },
+    {
+      "clave": "capas.capas.0.d",
+      "etiqueta": "Espesor carpeta",
+      "valor": 8.0,
+      "tol_rel": 0.001,
+      "unidad": "pulg",
+      "nota": "",
+      "tipo": "exacto"
+    },
+    {
+      "clave": "capas.capas.1.d",
+      "etiqueta": "Espesor base",
+      "valor": 7.0,
+      "tol_rel": 0.001,
+      "unidad": "pulg",
+      "nota": "",
+      "tipo": "exacto"
+    },
+    {
+      "clave": "capas.capas.2.d",
+      "etiqueta": "Espesor subbase",
+      "valor": 11.5,
+      "tol_rel": 0.001,
+      "unidad": "pulg",
+      "nota": "",
+      "tipo": "exacto"
+    }
+  ]
+}

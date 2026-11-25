@@ -15,7 +15,7 @@ def delta_psi_hinchamiento(vr: float, ps: float, theta: float, t: float) -> floa
 
 
 def delta_psi_helada(pf: float, dpsi_max: float, phi: float, t: float, coef: float = 0.02) -> float:
-    """Pérdida de serviciabilidad por helada. El coeficiente 0.02 está pendiente de verificar."""
+    """Pérdida de serviciabilidad por helada (AASHTO 93, ec. G.8; coef. 0,02 verificado en avance 1, pág. 52)."""
     return 0.01 * pf * dpsi_max * (1.0 - math.exp(-coef * phi * t))
 
 

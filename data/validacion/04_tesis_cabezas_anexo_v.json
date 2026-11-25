@@ -1,0 +1,178 @@
+{
+  "fuente": {
+    "titulo": "Ejemplo comparativo — Anexo V",
+    "tipo": "Bibliografía (tesis de maestría)",
+    "referencia": "Cabezas Ortiz, L. G. (2006). Sistematización del diseño para pavimentos flexibles. UAJMS, Anexo V, págs. 71–72"
+  },
+  "proyecto": {
+    "nombre": "Tesis Cabezas (2006) — Anexo V",
+    "autor": "",
+    "ubicacion": "",
+    "descripcion": "Ejemplo comparativo de la sistematización vs. método AASHTO 93.",
+    "transito": {
+      "n": 15.0,
+      "fd": 0.5,
+      "fc": 1.0,
+      "pt": 2.0,
+      "sn_lef": 3.0,
+      "vehiculos": []
+    },
+    "subrasante": {
+      "periodos": []
+    },
+    "diseno": {
+      "r_pct": 90,
+      "etapas": 1,
+      "so": 0.44,
+      "p0": 4.2,
+      "pt": 2.2,
+      "fuente_w18": "dato",
+      "w18_dato": 10000000.0,
+      "fuente_mr": "dato",
+      "mr_dato": 5000,
+      "carpeta": {
+        "e_psi": 400000,
+        "cbr": null,
+        "a": null,
+        "m": 1.0
+      },
+      "base": {
+        "e_psi": null,
+        "cbr": 100,
+        "a": null,
+        "m": 1.0
+      },
+      "subbase": {
+        "e_psi": null,
+        "cbr": 30,
+        "a": null,
+        "m": 1.0
+      },
+      "paso_sn": 0.1,
+      "unidad": "pulg",
+      "paso_espesor": 0.5,
+      "minimos": "aashto",
+      "min_carpeta": 0.0,
+      "min_base": 0.0,
+      "min_subbase": 0.0
+    },
+    "clima": {
+      "activo": false,
+      "hinchamiento": true,
+      "vr": 0.0,
+      "ps": 0.0,
+      "theta": 0.1,
+      "helada": null
+    }
+  },
+  "esperados": [
+    {
+      "clave": "diseno.materiales.carpeta.a",
+      "etiqueta": "a1",
+      "valor": 0.417467,
+      "tol_rel": 0.001,
+      "unidad": "",
+      "nota": "",
+      "tipo": "exacto"
+    },
+    {
+      "clave": "diseno.materiales.base.e",
+      "etiqueta": "E base",
+      "valor": 30236.5,
+      "tol_rel": 0.001,
+      "unidad": "psi",
+      "nota": "",
+      "tipo": "exacto"
+    },
+    {
+      "clave": "diseno.materiales.base.a",
+      "etiqueta": "a2",
+      "valor": 0.13865,
+      "tol_rel": 0.002,
+      "unidad": "",
+      "nota": "",
+      "tipo": "exacto"
+    },
+    {
+      "clave": "diseno.materiales.subbase.e",
+      "etiqueta": "E subbase",
+      "valor": 14954.58,
+      "tol_rel": 0.001,
+      "unidad": "psi",
+      "nota": "",
+      "tipo": "exacto"
+    },
+    {
+      "clave": "diseno.materiales.subbase.a",
+      "etiqueta": "a3",
+      "valor": 0.10867,
+      "tol_rel": 0.002,
+      "unidad": "",
+      "nota": "",
+      "tipo": "exacto"
+    },
+    {
+      "clave": "capas.sn1",
+      "etiqueta": "SN1",
+      "valor": 2.9,
+      "tol_rel": 0.01,
+      "unidad": "",
+      "nota": "",
+      "tipo": "exacto"
+    },
+    {
+      "clave": "capas.sn2",
+      "etiqueta": "SN2",
+      "valor": 3.74,
+      "tol_rel": 0.01,
+      "unidad": "",
+      "nota": "",
+      "tipo": "exacto"
+    },
+    {
+      "clave": "capas.sn3",
+      "etiqueta": "SN3",
+      "valor": 5.37,
+      "tol_rel": 0.005,
+      "unidad": "",
+      "nota": "",
+      "tipo": "exacto"
+    },
+    {
+      "clave": "capas.capas.0.d",
+      "etiqueta": "Espesor carpeta",
+      "valor": 7.0,
+      "tol_rel": 0.001,
+      "unidad": "pulg",
+      "nota": "",
+      "tipo": "exacto"
+    },
+    {
+      "clave": "capas.capas.1.d",
+      "etiqueta": "Espesor base",
+      "valor": 6.0,
+      "tol_rel": 0.001,
+      "unidad": "pulg",
+      "nota": "",
+      "tipo": "exacto"
+    },
+    {
+      "clave": "capas.capas.2.d",
+      "etiqueta": "Espesor subbase",
+      "valor": 15.0,
+      "tol_rel": 0.001,
+      "unidad": "pulg",
+      "nota": "",
+      "tipo": "exacto"
+    },
+    {
+      "clave": "capas.sn_total",
+      "etiqueta": "SN aportado",
+      "valor": 5.38,
+      "tol_rel": 0.005,
+      "unidad": "",
+      "nota": "",
+      "tipo": "exacto"
+    }
+  ]
+}

@@ -3,21 +3,25 @@ name = "pavimentos-aashto93"
 version = "0.1.0"
 requires-python = ">=3.11"
 dependencies = [
+    "fastapi>=0.165.0",
     "matplotlib>=3.11.2",
     "openpyxl>=3.1.5",
-    "streamlit",
     "typst>=0.15.2",
+    "uvicorn[standard]>=0.54.0",
 ]
 
 [project.optional-dependencies]
-dev = ["pytest"]
+dev = [
+    "httpx>=0.28.1",
+    "pytest",
+]
 
 [build-system]
 requires = ["setuptools>=61"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["pavimentos"]
+packages = ["pavimentos", "api"]
 
 [tool.setuptools.package-data]
 pavimentos = ["plantillas/*.typ"]

@@ -1,0 +1,8 @@
+services:
+  pavimentos:
+    build: .
+    image: pavimentos-aashto93
+    container_name: pavimentos
+    restart: unless-stopped
+    ports:
+      - "8000:8000"   # en el VPS, poné un proxy (Caddy/Nginx) delante con tu dominio

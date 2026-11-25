@@ -1,22 +1,25 @@
 #!/usr/bin/env bash
 # ---------------------------------------------------------------
-# Pavimentos AASHTO '93 — levanta la app Streamlit
+# Pavimentos AASHTO '93 — levanta la app en local
 #
-# Uso:
-#   ./run.sh          # abre en http://localhost:8501 y abre el navegador
-#   ./run.sh 8600     # abre en otro puerto
+#   ./run.sh         modo uso: compila la interfaz (si hace falta) y abre http://localhost:8000
+#   ./run.sh dev     modo desarrollo: API con recarga + Vite en http://localhost:5173
 # ---------------------------------------------------------------
 set -euo pipefail
 cd "$(dirname "$0")"
 
-PUERTO="${1:-8501}"
-
-if command -v uv >/dev/null 2>&1; then
-  uv run streamlit run app/app.py --server.port "$PUERTO"
-elif [ -x ".venv/bin/streamlit" ]; then
-  ".venv/bin/streamlit" run app/app.py --server.port "$PUERTO"
-else
-  echo "❌ No encontré 'uv' ni el entorno '.venv'." >&2
-  echo "   Instalá las dependencias una vez con:  uv pip install -e \".[dev]\"" >&2
-  exit 1
+if [ "${1:-}" = "dev" ]; then
+  uv run uvicorn api.main:app --port 8000 --reload --reload-dir api --reload-dir pavimentos &
+  API=$!
+  trap 'kill $API 2>/dev/null' EXIT
+  (cd web && pnpm install --silent && pnpm dev)
+  exit
 fi
+
+if [ ! -f web/dist/index.html ] || [ -n "$(find web/src web/index.html -newer web/dist/index.html 2>/dev/null | head -1)" ]; then
+  echo "▸ Compilando la interfaz…"
+  (cd web && pnpm install --silent && pnpm build)
+fi
+( sleep 2 && command -v xdg-open >/dev/null && xdg-open http://localhost:8000 >/dev/null 2>&1 ) &
+echo "▸ App en http://localhost:8000  (Ctrl+C para cerrar)"
+uv run uvicorn api.main:app --port 8000
